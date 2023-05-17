@@ -1,0 +1,84 @@
+﻿@page "/{culture}/Reject/{id:int}"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Pages.RejectedResult;
+@using WEUPanel.Shared.Common;
+@inject IRejectedResultService _rejectedAdService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject IStringLocalizer<Resource> _localizer
+@inject IMessageService _message
+@inject ILocalStorageService _localStorage
+@inject State state
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-12">
+
+            <TextArea @bind-Value="@context.Reason" Placeholder="@_localizer["دلیل ریجکت"]" />
+
+        </div>
+
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Reject">
+                @_localizer["ریجکت کن"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    [Parameter]
+    public List<GetFileWithType> files { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    RejectedResultModels.CreateRejectedResult command = new RejectedResultModels.CreateRejectedResult();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    [Parameter]
+    public Dictionary<string,string> query { get; set; }
+
+    private async Task Reject()
+    {
+        try
+        {
+            command.AdId = id;
+            command.AdFiles = files;
+            var result = await _rejectedAdService.AddEntity(command);
+
+            if (result.IsSuccessStatusCode)
+            {
+
+                await _message.Success($"با موفقیت رد شد", 2);
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/Advertisements",query));
+
+            }
+            else
+            {
+                await _message.Success($"خطایی رخ داد، دوباره امتحان کنید", 2);
+
+            }
+        }
+        catch (Exception err)
+        {
+            await _message.Success($"خطایی رخ داد، دوباره امتحان کنید", 2);
+        }
+    }
+}

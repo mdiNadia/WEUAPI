@@ -1,0 +1,278 @@
+﻿@page "/{culture}/Comments"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@inject ICommentService _commentService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject IStringLocalizer<Resource> _localizer
+
+@inject ModalService _modalService
+@using WEUPanel.Shared.Common
+@inject State state
+<br />
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+        <Table Bordered=@true
+           RowClassName="@(_=>"editable-row")"
+           Responsive="true"
+           Size=@TableSize.Middle
+           Loading="_loading"
+           TItem="CommentModels.Comment"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["آگهی"]" Property="c=>c.Advertising.Name">
+                <a>@context.Advertising.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["فرستنده"]" Property="c=>c.Username">
+                <a>@context.Username</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["توسط ادمین دیده شده؟"]" Property="c=>c.IsVisited">
+                <Switch Disabled Value="context.IsVisited"></Switch>
+            </PropertyColumn>
+            <PropertyColumn Width="30%" Title="@_localizer["فعال است؟"]" Property="c=>c.IsActive">
+
+                <div class="editable-cell-value-wrap" style="padding-right:24px">
+                    <Switch @bind-Value="@context.IsActive" AutoFocus OnChange="()=>EditSwitch(context.Id)"></Switch>
+                </div>
+
+
+
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+
+                <Space Size=@("middle")>
+
+                    <Button Class="bg-info small m-1" OnClick="()=>QuickView(context.Id)">@_localizer["مشاهده"]</Button>
+
+                    <Button Class="bg-primary small" OnClick="()=>Answer(context.Id,context.Advertising.Id)">@_localizer["پاسخ"]</Button>
+
+                    <Button Class="bg-danger small m-1" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">@_localizer["حذف"]</Button>
+
+
+                </Space>
+            </ActionColumn>
+        </Table>
+
+
+
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@comments.TotalPages
+                           totalRecords=@comments.TotalRecords
+                           nextPage=@comments.NextPage
+                           previousPage=@comments.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+
+}
+else
+{
+
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+
+
+}
+<Modal Title="@_localizer["پاسخ"]"
+       Visible="@_visible"
+       Footer="null"
+       DestroyOnClose="true"
+       OnCancel="@HandleCancel"
+       Width="@("50vw")">
+    <CommentCreate id="commentId" adId="adId" StateChangeAfterAction="StateChangeAfterAction" />
+</Modal>
+
+<Modal Title="@_localizer["پیغام"]"
+       Visible="@_visite"
+       OnCancel="@HandleCancel"
+       Footer="null"
+       DestroyOnClose="true"
+       Width="@("50vw")">
+    <CommentDetails id="id" />
+
+</Modal>
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public bool _visible = false;
+    public bool _visite = false;
+    protected async Task StateChangeAfterAction()
+    {
+        _visite = false;
+        _visible = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    public int id;
+    protected async Task QuickView(int id)
+    {
+        this.id = id;
+        _visite = true;
+    }
+    public int commentId;
+    public int adId;
+    void Answer(int id, int adId)
+    {
+        this.commentId = id;
+        this.adId = adId;
+        _visible = true;
+    }
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        await StateChangeAfterAction();
+    }
+    PagedResponse<IEnumerable<CommentModels.Comment>> comments;
+    IEnumerable<CommentModels.Comment> dataTable;
+
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        comments = await _commentService.GetAllByPaging(_pageIndex, 10);
+        _loading = false;
+        dataTable = comments.Data;
+        _pageIndex = comments.PageNumber;
+        _pageSize = comments.PageSize;
+        _total = comments.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        comments = await _commentService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = comments.Data;
+        _pageIndex = comments.PageNumber;
+        _pageSize = comments.PageSize;
+        _total = comments.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        comments = await _commentService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = comments.Data.ToArray();
+        _pageIndex = comments.PageNumber;
+        _pageSize = comments.PageSize;
+        _total = comments.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        comments = await _commentService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = comments.Data;
+        _pageIndex = comments.PageNumber;
+        _pageSize = comments.PageSize;
+        _total = comments.TotalRecords;
+        ChangeUrl();
+    }
+    public RestEception errorMessage = new RestEception();
+    protected async Task DeleteData(int id)
+    {
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _commentService.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+                StateHasChanged();
+            }
+            await _message.Success($"با موفقیت حذف شد", 2);
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = comments.Data;
+            _total = _total + 1;
+
+        }
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, int id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+    private async Task EditSwitch(int id)
+    {
+        try
+        {
+            var model = dataTable.Where(c => c.Id == id).FirstOrDefault();
+            CommentModels.EditComment command = new();
+            command.Id = id;
+            command.IsActive = model.IsActive;
+            command.IsVisite = model.IsVisited;
+            var result = await _commentService.UpdateEntity(id, command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.25,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+                StateHasChanged();
+
+            }
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+

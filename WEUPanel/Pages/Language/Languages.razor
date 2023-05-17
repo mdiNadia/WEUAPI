@@ -1,0 +1,238 @@
+﻿@page "/{culture}/Languages"
+@using Microsoft.AspNetCore.WebUtilities;
+@using Newtonsoft.Json;
+@using WEUPanel.Helpers.Pagination
+@inject ILanguageService _languageService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject IStringLocalizer<Resource> _localizer
+@inject ModalService _modalService
+@using WEUPanel.Shared.Common;
+@inject State state
+@inject CultureSelector cultureSelector
+
+<div>
+    @if (_showEditForm)
+    {
+        <LanguageEdit culture="@culture" id="@id" StateChangeAfterAction="StateChangeAfterAction" />
+        _showEditForm = false;
+    }
+    else
+    {
+
+        <LanguageCreate culture="@culture" StateChangeAfterAction="StateChangeAfterAction" />
+
+    }
+
+</div>
+
+<br />
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+        <Table @ref="tableRef"
+           Bordered=@true
+           Responsive="true"
+           Size=@TableSize.Middle
+           Loading="_loading"
+           TItem="LanguageModels.Language"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نمادک"]" Property="c=>c.IconName">
+                <a><Image Width="20" Src="@(_baseRequestParameter._Base_Images_Url + "/Language/"+ context.IconName)" /></a>
+            </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["نام"]" Property="c=>c.Name">
+                <a>@context.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نام کوتاه"]" Property="c=>c.ShortName">
+                <a>@context.ShortName</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["جهت"]" Property="c=>c.Direction">
+                <a>@(source.SingleOrDefault(s => s.value == context.Direction).key)</a>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                    <SpaceItem>
+                        <Button Class="bg-warning small m-1" OnClick="()=>EditData(context.Id)">@_localizer["ویرایش"]</Button>
+                    </SpaceItem>
+                    <SpaceItem>
+                        <Button Class="bg-danger small" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">@_localizer["حذف"]</Button>
+
+                    </SpaceItem>
+                </Space>
+            </ActionColumn>
+        </Table>
+
+
+
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@languages.TotalPages
+                           totalRecords=@languages.TotalRecords
+                           nextPage=@languages.NextPage
+                           previousPage=@languages.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+}
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    public bool _showEditForm = false;
+    public int id;
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public RestEception errorMessage = new RestEception();
+
+    protected async Task StateChangeAfterAction()
+    {
+        _showEditForm = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    void EditData(int id)
+    {
+        this._showEditForm = true;
+        this.id = id;
+    }
+    ITable tableRef;
+    PagedResponse<IEnumerable<LanguageModels.Language>> languages;
+    IEnumerable<LanguageModels.Language> dataTable;
+
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        languages = await _languageService.GetAllByPaging(_pageIndex, 10);
+        _loading = false;
+        dataTable = languages.Data;
+        _pageIndex = languages.PageNumber;
+        _pageSize = languages.PageSize;
+        _total = languages.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+        
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        languages = await _languageService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = languages.Data;
+        _pageIndex = languages.PageNumber;
+        _pageSize = languages.PageSize;
+        _total = languages.TotalRecords;
+        ChangeUrl();
+
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        languages = await _languageService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = languages.Data.ToArray();
+        _pageIndex = languages.PageNumber;
+        _pageSize = languages.PageSize;
+        _total = languages.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        languages = await _languageService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = languages.Data;
+        _pageIndex = languages.PageNumber;
+        _pageSize = languages.PageSize;
+        _total = languages.TotalRecords;
+        ChangeUrl();
+    }
+    protected async Task DeleteData(int id)
+    {
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _languageService.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+                StateHasChanged();
+            }
+            await _message.Success($"با موفقیت حذف شد", 2);
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage = JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = languages.Data;
+            _total = _total + 1;
+
+        }
+
+
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, int id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+    List<DataType> source = new List<DataType>
+   {
+      new DataType { key = "راست به چپ", value = 0},
+      new DataType { key = "چپ به راست", value = 1},
+      new DataType { key = "وسط", value = 2},
+   };
+}
+
+

@@ -1,0 +1,92 @@
+﻿<div>
+    <InputFile OnChange="@OnFileSelection" />
+
+    @{
+        var ex = Path.GetExtension(FileName);
+        
+        if (imgFile != null)
+        {
+            <div class="row mt-1">
+                <div class="col-3 mt-1 text-center">
+
+                    @if (imgFile.ContentType == "video/mp4")
+                    {
+
+                        <video width="100" controls>
+                            <source src="@(imgUrl??FilePath+FileName)" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    }
+                    else
+                    {
+                        <img class="m-auto" src="@(imgUrl??FilePath+FileName)" style="width:100px" />
+                    }
+
+
+                </div>
+
+
+            </div>
+        }
+        else
+        {
+            if (ex == ".mp4")
+            {
+                <video width="100" controls autoplay>
+                    <source src="@(imgUrl??FilePath+FileName)" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            }
+            else
+            {
+                <img class="m-auto" src="@(imgUrl??FilePath+FileName)" style="width:100px" />
+
+            }
+        }
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public EventCallback<CallBack> OnSetSelectedFile { get; set; }
+    [Parameter]
+    public string? FileName { get; set; }
+    [Parameter]
+    public string? FilePath { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    [Parameter]
+    public int FileId { get; set; }
+    string imgUrl;
+    public byte[] buffers;
+
+    public IBrowserFile imgFile;
+    public class CallBack
+    {
+        public GetFileModel getFileModel { get; set; }
+        public int id { get; set; }
+    }
+
+    private async Task OnFileSelection(InputFileChangeEventArgs e)
+    {
+        imgFile = e.File;
+
+        buffers = new byte[imgFile.Size];
+        await imgFile.OpenReadStream(imgFile.Size).ReadAsync(buffers);
+        string imageType = imgFile.ContentType;
+        imgUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffers)}";
+        await OnSetSelectedFile.InvokeAsync(new CallBack()
+            {
+                getFileModel = new GetFileModel
+                {
+                    file = imgFile,
+                     id = FileId
+                },
+                id = id
+            });
+    }
+
+
+
+}

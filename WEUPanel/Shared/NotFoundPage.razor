@@ -1,0 +1,24 @@
+﻿@page "/NotFound"
+@inject IStringLocalizer<Resource> _localizer
+<div class="row text-center">
+    <div class="col-12 text-center">
+        <img src="/data-not-found-1965034-1662569.webp" class="img-fluid" alt="banner" />
+    </div>
+    <div class="col-12 text-center">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center">@_localizer["پیدا نشد!"]</h1>
+                <p class="text-center fs-2">@_localizer["صفحه مورد نظر وجود ندارد یا ممکن است حذف شده باشد!"]</p>
+                <p class="text-center fs-3">
+                    <NavLink class="btn btn-info" href="@("/"+culture)">
+                        @_localizer["صفحه اصلی"]
+                    </NavLink>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    string culture = CultureInfo.CurrentCulture.DisplayName;
+}

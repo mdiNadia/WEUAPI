@@ -1,0 +1,143 @@
+﻿@page "/{culture}/AdvertisementDetail/{id:int}"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Pages.Advertisement;
+@using WEUPanel.Pages.ConfirmedResult;
+@using WEUPanel.Shared.Common;
+@inject IAdveriseService _adveriseService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@inject IMessageService _message
+@inject IConfirmedResultservice _confirmedAdService
+@inject State state
+@if (command != null)
+{
+    <div class="row">
+        <div class="goback-btn">
+            <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Advertisements");})">@_localizer["بازگشت به عقب"]</Button>
+            <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+        </div>
+        <br />
+        <div class="col-12 bg-white p-4">
+            <div class="d-flex justify-content-between flex-wrap">
+                @foreach (var item in command.Files)
+                {
+                    if (Path.GetExtension(item.Name) == ".mp4")
+                    {
+                        <video width="320" height="240" autoplay>
+                            <source src="@(_baseRequestParameter._Base_Videos_Url + "/Ad/"+ item.Name)" type="video/mp4">
+                            <source src="@(_baseRequestParameter._Base_Videos_Url + "/Ad/"+ item.Name)" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
+                    }
+                    else
+                    {
+                        <Image Class="m-1" Width="50" Src="@(_baseRequestParameter._Base_Images_Url + "/Ad/"+ item.Name)" />
+
+                    }
+
+                }
+            </div>
+            <Divider>توضیحات</Divider>
+            <p>
+                @command.Description
+            </p>
+            <Divider>متن</Divider>
+            <p>
+                @command.Text
+            </p>
+            <Divider>تاریخ شروع و انقضاء</Divider>
+            <p>
+                تاریخ شروع: @command.StartDate
+                <br />
+                تاریخ انقضاء: @command.ExpireDate
+            </p>
+            @{
+                if (command.AdStatus == AdStatus.awaiting)
+                {
+                    <Button Class="bg-danger small" OnClick="()=>RejectModal(command.Id,command.Files)">@_localizer["رد کردن"]</Button>
+                    <Button Class="bg-success small m-1" OnClick="()=>Confirm(command.Id,command.Files)">@_localizer["تایید کردن"]</Button>
+                }
+            }
+
+        </div>
+
+    </div>
+}
+<Modal Title="@_localizer["دلیل ریجکت"]"
+       Visible="@_RejectedModal"
+       OnCancel="@HandleCancel"
+       Footer="null"
+       DestroyOnClose="true"
+       Width="@("50vw")">
+    <_RejectResult culture="@culture" id="@RejectedId" files="@Rejectedfiles" query="@query" StateChangeAfterAction="StateChangeAfterAction" />
+</Modal>
+@code {
+
+
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    protected AdvertisementModels.Advertisement command = new();
+    public Dictionary<string, string> query;
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _adveriseService.GetById(id);
+        command = model.Data;
+        query = new Dictionary<string, string>
+               {
+                    { "page", state.SelectedPage }
+                };
+    }
+
+    ////////////////////////////////
+    bool _RejectedModal = false;
+    int RejectedId;
+    List<GetFileWithType> Rejectedfiles;
+    protected async Task RejectModal(int id, List<GetFileWithType> files)
+    {
+        _RejectedModal = true;
+        this.RejectedId = id;
+        this.Rejectedfiles = files;
+    }
+    protected async Task Confirm(int id, List<GetFileWithType> files)
+    {
+
+        try
+        {
+            ConfirmedResultModels.CreateConfirmedResult f = new ConfirmedResultModels.CreateConfirmedResult();
+            f.AdId = id;
+            f.AdFiles = files;
+            var res = await _confirmedAdService.AddEntity(f);
+            if (res.IsSuccessStatusCode)
+            {
+                await _message.Success($"با موفقیت تایید شد", 2);
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/Advertisements", query));
+
+
+            }
+            else
+            {
+                await _message.Success($"خطایی رخ داد، دوباره امتحان کنید", 2);
+
+            }
+        }
+        catch (Exception err)
+        {
+            await _message.Success($"خطایی رخ داد، دوباره امتحان کنید", 2);
+        }
+    }
+    private async Task StateChangeAfterAction()
+    {
+        _RejectedModal = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        await StateChangeAfterAction();
+    }
+
+}

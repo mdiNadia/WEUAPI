@@ -1,0 +1,141 @@
+﻿@page "/{culture}/ProfileEdit/{id:int}"
+@using Microsoft.AspNetCore.WebUtilities;
+@inject IProfileService _profileService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@using WEUPanel.Shared.Common
+@inject State state
+
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Users");})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <Input @bind-Value=@context.Id Type="hidden" />
+        <div class="col-12">
+            <FormItem Label="@_localizer["تصویر"]">
+                <SingleFileUpload OnSetSelectedFile="OnSetSelectedFile" FileName="@context.AvatarName" FilePath="@(_baseRequestParameter._Base_Images_Url + "/Profile/")" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+
+        <div class="col-4">
+            <FormItem Label="@_localizer["لینک"]">
+                <Input @bind-Value="@context.Link" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <FormItem Label="@_localizer["نوع پروفایل"]">
+                <RadioGroup @bind-Value="@context.ProfileType">
+                    <Radio Value="1">@_localizer["تجاری"]</Radio>
+                    <Radio Value="0">@_localizer["شخصی"]</Radio>
+                </RadioGroup>
+            </FormItem>
+
+        </div>
+        <div class="col-12">
+
+                <TextArea @bind-Value="@context.Bio" Placeholder="@_localizer["معرفی کوتاه"]" />
+         
+        </div>
+        <div class="col-12 m-1">
+
+            <Button class="ant-btn ant-btn-primary" HtmlType="submit" OnClick="@Edit">
+                @_localizer["ثبت"]
+            </Button>
+
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    Dictionary<string, string> query;
+    protected ProfileModels.EditProfile command = new();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    #region Select File
+    public IBrowserFile imgFile;
+    protected async Task OnSetSelectedFile(IBrowserFile file)
+    {
+        imgFile = file;
+    }
+    #endregion Select File
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _profileService.GetById(id);
+        command = model.Data.Adapt<ProfileModels.EditProfile>();
+        query = new Dictionary<string, string>
+        {
+                    { "page", state.SelectedPage }
+        };
+    }
+    private async Task Edit()
+    {
+        try
+        {
+            var requestContent = new MultipartFormDataContent();
+            requestContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+
+            if (imgFile != null)
+            {
+                var stream = imgFile.OpenReadStream(maxAllowedSize: 512000 * 1000);
+                requestContent.Add(content: new StreamContent(stream, (int)imgFile.Size), name: "avatarFile", fileName: imgFile.Name);
+            }
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.Id), Encoding.UTF8, "application/json"), name: "id");
+            requestContent.Add(content: new StringContent(command.Name, Encoding.UTF8, "application/json"), name: "name");
+            requestContent.Add(content: new StringContent(command.Bio, Encoding.UTF8, "application/json"), name: "bio");
+            requestContent.Add(content: new StringContent(command.Link, Encoding.UTF8, "application/json"), name: "link");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.ProfileType), Encoding.UTF8, "application/json"), name: "profileType");
+            var result = await _profileService.UpdateEntityFormFile(id, requestContent);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/Users", query));
+
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

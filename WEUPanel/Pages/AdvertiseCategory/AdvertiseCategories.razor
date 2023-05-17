@@ -1,0 +1,329 @@
+﻿@page "/{culture}/AdvertiseCategories"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Pages.AdCategoryCost
+@using WEUPanel.Shared.Common;
+@inject IAdvertiseCategory _advertiseCategory
+@inject IAdCategoryCostService _adCategoryCostService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject IStringLocalizer<Resource> _localizer
+@inject ModalService _modalService
+@inject State state
+<style>
+    .cat {
+        background-color: rgb(0 255 102 / 15%);
+        padding: 5px;
+        text-align: center;
+        border: #1af774 1px solid;
+        margin: 0 1px;
+    }
+</style>
+
+<div>
+    @if (_showEditForm)
+    {
+        <AdvertiseCategoryEdit culture="@culture" id="@id" StateChangeAfterAction="StateChangeAfterAction" />
+        _showEditForm = false;
+    }
+    else
+    {
+        if (_showCreateForm)
+        {
+            <AdvertiseCategoryCreate culture="@culture" StateChangeAfterAction="StateChangeAfterAction" />
+            
+        }
+      
+    }
+</div>
+
+<br />
+@if (dataTable != null && dataTable?.Count() != 0)
+
+{
+    <div class="col-md-12">
+
+
+
+        <Table Bordered=@true
+           Responsive="true"
+           Loading="_loading"
+           TItem="AdvertiseCategoryModels.AdvertiseCategory"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+
+
+            <PropertyColumn Title="@_localizer["عنوان دسته بندی"]" Property="c=>c.Name">
+                <a>@context.Name</a>
+            </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["دسته‌بندی پدر"]" Property="c=>c.ParentName">
+                <a>@(context.ParentName ?? "بدون دسته‌بندی")</a>
+            </PropertyColumn>
+
+
+            <PropertyColumn Title="@_localizer["توضیحات"]" Property="c=>c.Description">
+                <a>@context.Description</a>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                    @{
+                        if (context.CostId != 0)
+                        {
+
+                            <Button Class="bg-primary small m-1" OnClick="()=>EditCost(context.CostId)">تغییر قیمت</Button>
+
+                        }
+                        else
+                        {
+
+                            <Button Class="bg-primary small m-1" OnClick="()=>Cost(context.Id)">قیمت</Button>
+
+                        }
+                    }
+
+
+                    @{
+                        if ((context.CostId != null || context.CostId != 0) && context.IsActiveCost)
+
+                        {
+
+                            <Button Class="bg-info small" OnClick="()=>HandleCostActive(context.CostId)">رایگان کردن</Button>
+
+                        }
+
+                        else
+                        {
+
+                            <Button Class="bg-info small" OnClick="()=>HandleCostActive(context.CostId)">پولی کردن</Button>
+
+                        }
+
+                    }
+                    <Button Class="bg-warning small m-1" OnClick="()=>EditData(context.Id)">ویرایش</Button>
+
+                    <Button Class="bg-danger small" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">حذف</Button>
+
+                </Space>
+            </ActionColumn>
+        </Table>
+
+
+
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@advertiseCategory.TotalPages
+                           totalRecords=@advertiseCategory.TotalRecords
+                           nextPage=@advertiseCategory.NextPage
+                           previousPage=@advertiseCategory.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+}
+<Modal Title=""
+       Visible="@_adCatCostCreate"
+       OnCancel="HandleCancel"
+       DestroyOnClose="true"
+       Footer="null">
+    <AdCatCostCreate id="@adCatId" StateChangeAfterAction="StateChangeAfterAction" />
+</Modal>
+<Modal Title=""
+       Visible="@_adCatCostEdit"
+       OnCancel="HandleCancel"
+       DestroyOnClose="true"
+       Footer="null">
+    <AdCatCostEdit id="@adCatId" StateChangeAfterAction="StateChangeAfterAction" />
+</Modal>
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    public bool _showEditForm = false;
+    public bool _showCreateForm = false;
+    public int id;
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    ITable tableRef;
+    PagedResponse<IEnumerable<AdvertiseCategoryModels.AdvertiseCategory>> advertiseCategory;
+    IEnumerable<AdvertiseCategoryModels.AdvertiseCategory> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _showCreateForm = false;
+        _loading = true;
+        advertiseCategory = await _advertiseCategory.GetAllByPaging(_pageIndex, 10);
+        _loading = false;
+        dataTable = advertiseCategory.Data;
+        _pageIndex = advertiseCategory.PageNumber;
+        _pageSize = advertiseCategory.PageSize;
+        _total = advertiseCategory.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+        _showCreateForm = true;
+
+    }
+
+    private async Task nextPage()
+    {
+        _loading = true;
+        advertiseCategory = await _advertiseCategory.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = advertiseCategory.Data;
+        _pageIndex = advertiseCategory.PageNumber;
+        _pageSize = advertiseCategory.PageSize;
+        _total = advertiseCategory.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        if (_pageIndex != 1)
+            advertiseCategory = await _advertiseCategory.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = advertiseCategory.Data;
+        _pageIndex = advertiseCategory.PageNumber;
+        _pageSize = advertiseCategory.PageSize;
+        _total = advertiseCategory.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        advertiseCategory = await _advertiseCategory.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = advertiseCategory.Data;
+        _pageIndex = advertiseCategory.PageNumber;
+        _pageSize = advertiseCategory.PageSize;
+        _total = advertiseCategory.TotalRecords;
+        ChangeUrl();
+    }
+    void EditData(int id)
+    {
+        this._showEditForm = true;
+        this.id = id;
+    }
+    public bool _adCatCostCreate = false;
+    public bool _adCatCostEdit = false;
+    public int adCatId;
+    void Cost(int id)
+    {
+        adCatId = id;
+        _adCatCostCreate = true;
+    }
+    void EditCost(int? id)
+    {
+
+        adCatId = (int)id;
+        _adCatCostEdit = true;
+    }
+    private async Task HandleCostActive(int? id)
+    {
+        var result = await _adCategoryCostService.HandleCost((int)id);
+        if (result.IsSuccessStatusCode)
+        {
+            await _message.Success($"با موفقیت انجام شد", 2);
+            await StateChangeAfterAction();
+        }
+        else
+        {
+            await _message.Error($"خطایی رخ داد، انجام نشد!", 2);
+        }
+    }
+
+    public RestEception errorMessage = new RestEception();
+
+    protected async Task DeleteData(int id)
+    {
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _advertiseCategory.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+
+            }
+
+            await _message.Success($"با موفقیت حذف شد", 2);
+          
+            await StateChangeAfterAction();
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = advertiseCategory.Data;
+            _total = _total + 1;
+
+        }
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, int id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+
+
+    protected async Task StateChangeAfterAction()
+    {
+
+        _showEditForm = false;
+        _adCatCostEdit = false;
+        _adCatCostCreate = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+
+    }
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        await StateChangeAfterAction();
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+

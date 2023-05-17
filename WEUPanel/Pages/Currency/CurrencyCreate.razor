@@ -1,0 +1,89 @@
+﻿@page "/{culture}/CurrencyCreate/{country:int}"
+@inject ICurrencyService _currencyService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject ICountryService _countryservice
+@inject IStringLocalizer<Resource> _localizer
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16"
+ >
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-12 m-1">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.CurrencyName" />
+            </FormItem>
+        </div>
+
+        <div class="col-12 m-1">
+            <Text>@_localizer["بعنوان واحد پول پیشفرض تنظیم شود؟"]</Text>
+            <br />
+            <RadioGroup @bind-Value="@context.IsDefault">
+                <Radio Value="true">@_localizer["بله"]</Radio>
+                <Radio Value="false">@_localizer["خیر"]</Radio>
+            </RadioGroup>
+
+        </div>
+
+        <div class="col-12 m-1">
+         
+                <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+                </Button>
+          
+
+        </div>
+
+    </div>
+
+
+</Form>
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int country { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    CurrencyModels.CreateCurrency command = new CurrencyModels.CreateCurrency();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    private async Task Create()
+    {
+        try
+        {
+            command.CountryId = country;
+            var result = await _currencyService.AddEntity(command);
+
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت انجام شد!",
+
+                    });
+                command = new CurrencyModels.CreateCurrency();
+                await StateChangeAfterAction.InvokeAsync();
+                
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

@@ -1,0 +1,122 @@
+﻿@page "/{culture}/CityEdit/{id:int}"
+
+@inject ICityService _cityService
+@inject IProvinceService _provinceService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject IStringLocalizer<Resource> _localizer
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <Input @bind-Value=@context.Id Type="hidden" />
+         <div class="col-12">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+                <div class="col-12">
+            <FormItem Label="@_localizer["طول جغرافیایی"]">
+        <Input @bind-Value="@context.Longitude" />
+            </FormItem>
+        </div>
+        <div class="col-12">
+            <FormItem Label="@_localizer["عرض جغرافیایی"]">
+                <Input @bind-Value="@context.Latitude" />
+            </FormItem>
+        </div>
+
+        <div class="col-12">
+            <SingleSelect dataSource="provinces"
+                          bindValue="@context.ProvinceId"
+                          label="@_localizer["استان"]"
+                          placeHolder="@_localizer["انتخاب کنید..."]"
+                          OnSetSelected="OnSetSelected" />
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <FormItem Label="@_localizer["فعال باشد؟"]">
+                <Switch @bind-Value="@context.IsActive"></Switch>
+                <span class="m-1"></span>
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+                <Button class="ant-btn ant-btn-primary" HtmlType="submit" OnClick="@Edit">
+                @_localizer["ثبت"]
+                </Button>
+
+                <Button class="ant-btn ant-btn-danger" Type="@ButtonType.Default" HtmlType="cancel" OnClick="()=>StateChangeAfterAction.InvokeAsync(true)">
+                @_localizer["انصراف"]
+                </Button>
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    protected CityModels.EditCity command = new();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    #region Single Select
+    List<DataType> provinces = new List<DataType>();
+    protected async Task OnSetSelected(int selected)
+    {
+        command.ProvinceId = selected;
+    }
+    #endregion
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _cityService.GetById(id);
+        command = model.Data.Adapt<CityModels.EditCity>();
+        var res = await _provinceService.GetAllWithoutPaging();
+        foreach (var item in res)
+        {
+            provinces.Add(new DataType { key = item.Name, value = item.Id });
+        }
+    }
+    private async Task Edit()
+    {
+        try
+        {
+            var result = await _cityService.UpdateEntity(id, command);
+
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

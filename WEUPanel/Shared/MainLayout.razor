@@ -1,0 +1,92 @@
+﻿@using WEUPanel.Pages.Language;
+@using WEUPanel.Shared.Common;
+@inherits LayoutComponentBase
+@inject IStringLocalizer<Resource> localizer
+@inject NavigationManager _navigation
+@inject IAuthService AuthService
+@inject IJSRuntime JS
+@inject ILocalStorageService _localStorage
+@inject BaseRequestParameter _baseRequestParameter
+@inject State state
+
+<style>
+    .logout-btn:hover, .logout-btn:focus {
+        color: #40a9ff;
+        border-color: #40a9ff;
+    }
+</style>
+<div class="page">
+
+
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+
+        <div class="top-row px-4 d-flex justify-content-between">
+            <div>
+
+                <CultureSelector/>
+
+            </div>
+            <div>
+                <span class="avatar-item">
+                    <Badge Count="1">
+                        <Avatar Src="@(_baseRequestParameter._Base_Images_Url  + "/default.png")" Icon="user" />
+                    </Badge>
+                </span>
+
+                <Button Class="logout-btn m-2 btn-sm" OnClick=@logout>
+                    <Icon Type="logout" Theme="outline" Class="p-1" />
+                    @localizer["خروج"]
+                </Button>
+
+            </div>
+        </div>
+
+
+        <article class="content px-4">
+
+            @Body
+
+        </article>
+    </main>
+
+</div>
+@code {
+    public string token = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        token = await _localStorage.GetItemAsync<string>("token");
+
+        var culture = CultureInfo.CurrentCulture;
+        try
+        {
+            if (culture.DisplayName == "fa")
+            {
+                if (JS is IJSInProcessRuntime sr)
+                    sr.InvokeVoid("document.body.setAttribute", "dir", "rtl");
+                else
+                    await JS.InvokeVoidAsync("document.body.setAttribute", "dir", "rtl;");
+            }
+            if (string.IsNullOrEmpty(token))
+            {
+                _navigation.NavigateTo("/login");
+            }
+
+        }
+        catch (Exception err)
+        {
+
+        }
+
+    }
+    public async Task logout()
+    {
+        await AuthService.Logout();
+        _navigation.NavigateTo("/", true);
+    }
+
+}

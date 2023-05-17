@@ -1,0 +1,150 @@
+﻿@page "/{culture}/ReportedAds"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Pages.ReportsAds;
+@inject IReportedService _reportedService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject IStringLocalizer<Resource> _localizer
+@using WEUPanel.Shared.Common
+@inject State state
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+        <Table Bordered=@true
+           Responsive="true"
+           Loading="_loading"
+           TItem="ReportedModels.Reported"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["گزارش شده"]" Property="c=>c.Blocked">
+                <a>@context.Blocked</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["گزارش دهنده"]" Property="c=>c.Blocker">
+                <a>@context.Blocker</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["دلیل"]" Property="c=>c.Reason">
+                <a>@context.Reason</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["توضیحات"]" Property="c=>c.Desciption">
+                <a>@context.Desciption</a>
+            </PropertyColumn>
+
+
+
+        </Table>
+
+
+
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@reportedAds.TotalPages
+                           totalRecords=@reportedAds.TotalRecords
+                           nextPage=@reportedAds.NextPage
+                           previousPage=@reportedAds.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+   
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+
+}
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public int id;
+    protected async Task StateChangeAfterAction(bool value)
+    {
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+
+    ITable tableRef;
+    PagedResponse<IEnumerable<ReportedModels.Reported>> reportedAds;
+    IEnumerable<ReportedModels.Reported> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        reportedAds = await _reportedService.GetAllReportedAdsByPaging(_pageIndex, 10);
+        _loading = false;
+
+        dataTable = reportedAds.Data;
+        _pageIndex = reportedAds.PageNumber;
+        _pageSize = reportedAds.PageSize;
+        _total = reportedAds.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        reportedAds = await _reportedService.GetAllReportedAdsByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = reportedAds.Data;
+        _pageIndex = reportedAds.PageNumber;
+        _pageSize = reportedAds.PageSize;
+        _total = reportedAds.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        reportedAds = await _reportedService.GetAllReportedAdsByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = reportedAds.Data;
+        _pageIndex = reportedAds.PageNumber;
+        _pageSize = reportedAds.PageSize;
+        _total = reportedAds.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        reportedAds = await _reportedService.GetAllReportedAdsByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = reportedAds.Data;
+        _pageIndex = reportedAds.PageNumber;
+        _pageSize = reportedAds.PageSize;
+        _total = reportedAds.TotalRecords;
+        ChangeUrl();
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+

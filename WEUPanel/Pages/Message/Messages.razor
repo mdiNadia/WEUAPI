@@ -1,0 +1,177 @@
+﻿@page "/{culture}/Message/{username}"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Pages.Profile
+@inject IChatService _chatService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject BaseRequestParameter _baseRequestParameter
+
+@inject IStringLocalizer<Resource> _localizer
+@using WEUPanel.Shared.Common;
+@inject State state
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Users");})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+        <div class="col-md-12">
+            <Table Bordered=@true
+           Loading="_loading"
+           Responsive="true"
+           TItem="MessageModels.Message"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+                <PropertyColumn Title="@_localizer["شناسه"]"
+                        Property="c=>c.Id">
+                    <a>@context.Id</a>
+                </PropertyColumn>
+                <PropertyColumn Title="@_localizer["فرستنده"]" Property="c=>c.SenderUsername">
+                    <a>@context.SenderUsername</a>
+                </PropertyColumn>
+
+                <PropertyColumn Title="@_localizer["گیرنده"]" Property="c=>c.RecipientUsername">
+                    <a>@context.RecipientUsername</a>
+                </PropertyColumn>
+            <PropertyColumn Title="@_localizer["فرستنده حذف کرده؟"]" Property="c=>c.SenderDeleted">
+                <Switch Disabled @bind-Value="@context.SenderDeleted"></Switch>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["گیرنده حذف کرده؟"]" Property="c=>c.RecipientDeleted">
+                <Switch Disabled @bind-Value="@context.RecipientDeleted"></Switch>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تاریخ خوانده شدن"]" Property="c=>c.DateRead">
+                <a>@context.DateRead</a>
+            </PropertyColumn>
+
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                        <Button Class="bg-warning small m-1" OnClick="()=>ShowMessageContent(context.Content)"><Icon Type="search" Theme="outline" /></Button>
+                </Space>
+            </ActionColumn>
+            </Table>
+            <br />
+
+            <div class="d-flex justify-content-between">
+                <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+                <div class="prev-next-box">
+                    <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@chats.TotalPages
+                           totalRecords=@chats.TotalRecords
+                           nextPage=@chats.NextPage
+                           previousPage=@chats.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+                </div>
+            </div>
+
+            <br />
+        </div>
+
+
+}
+else
+{
+        <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+
+}
+<Modal Title="@("متن پیام")"
+       Visible="@_visible"
+       Footer="null"
+       OnCancel="@HandleCancel"
+       DestroyOnClose="true"
+       Width="@("50vw")">
+    <p>@messageContent</p>
+</Modal>
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public string username { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public bool _visible = false;
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        this._visible = false;
+    }
+    public string messageContent;
+    void ShowMessageContent(string content)
+    {
+        this._visible = true;
+        messageContent = content;
+    }
+    ITable tableRef;
+    PagedResponse<IEnumerable<MessageModels.Message>> chats;
+    IEnumerable<MessageModels.Message> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        chats = await _chatService.GetAllByPaging(username, _pageIndex, 10);
+        _loading = false;
+        dataTable = chats.Data;
+        _pageIndex = chats.PageNumber;
+        _pageSize = chats.PageSize;
+        _total = chats.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        chats = await _chatService.GetAllByPaging(username, (_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = chats.Data;
+        _pageIndex = chats.PageNumber;
+        _pageSize = chats.PageSize;
+        _total = chats.TotalRecords;
+        ChangeUrl();
+
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        chats = await _chatService.GetAllByPaging(username, (_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = chats.Data;
+        _pageIndex = chats.PageNumber;
+        _pageSize = chats.PageSize;
+        _total = chats.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        chats = await _chatService.GetAllByPaging(username, page, _pageSize);
+        _loading = false;
+        dataTable = chats.Data;
+        _pageIndex = chats.PageNumber;
+        _pageSize = chats.PageSize;
+        _total = chats.TotalRecords;
+        ChangeUrl();
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+

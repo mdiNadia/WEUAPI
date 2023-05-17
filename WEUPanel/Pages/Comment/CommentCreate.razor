@@ -1,0 +1,89 @@
+﻿@page "/{culture}/CommentCreate/{id:int}/{adId:int}"
+
+@inject ICommentService _commentService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject IStringLocalizer<Resource> _localizer
+@inject ILocalStorageService _localStorage
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-12">
+
+            <TextArea @bind-Value="@context.Message" Placeholder="@_localizer["پیغام"]" />
+
+        </div>
+        <div class="col-12">
+            <FormItem Label="@_localizer["فعال باشد؟"]">
+                <Switch @bind-Value="@context.IsActive"></Switch>
+                <span class="m-1"></span>
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    [Parameter]
+    public int adId { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    CommentModels.CreateComment command = new CommentModels.CreateComment();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+
+    private async Task Create()
+    {
+        try
+        {
+            command.AdvertisingId = adId;
+            command.ParentId = id;
+            command.IsVisited = false;
+            command.UserName = await _localStorage.GetItemAsync<string>("name");
+            var result = await _commentService.AddEntity(command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+                    });
+                command = new CommentModels.CreateComment();
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

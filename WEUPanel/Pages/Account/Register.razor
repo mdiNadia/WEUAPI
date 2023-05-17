@@ -1,0 +1,95 @@
+﻿@page "/Register"
+@inject IAuthService _authService
+@inject NavigationManager _navigation
+
+@inject IStringLocalizer<Resource> _localizer
+
+
+
+<style>
+    .form-style {
+        background: #fff;
+        padding: 15px;
+        border-radius: 5px;
+    }
+</style>
+
+<div class="row form-style">
+    <div class="col-12">
+        @if (ShowErrors)
+        {
+            <div class="alert alert-danger" role="alert">
+
+                <p>@Error</p>
+
+            </div>
+        }
+        <br />
+        <Form Model="@model"
+              LabelColSpan="8"
+              WrapperColSpan="16">
+            <div class="col-12">
+                <FormItem Label="@_localizer["نام کاربری"]">
+                    <Input @bind-Value="@context.UserName" />
+                </FormItem>
+            </div>
+            <div class="col-12">
+                <FormItem Label="@_localizer["نام"]">
+                    <Input @bind-Value="@context.FirstName" />
+                </FormItem>
+            </div>
+            <div class="col-12">
+                <FormItem Label="@_localizer["نام خانوادگی"]">
+                    <Input @bind-Value="@context.LastName" />
+                </FormItem>
+            </div>
+            <div class="col-12">
+                <FormItem Label="@_localizer["ایمیل"]">
+
+                    <Input Type="email" @bind-Value="@context.Email" />
+                </FormItem>
+            </div>
+            <div class="col-12">
+                <FormItem Label="@_localizer["موبایل"]">
+                    <Input @bind-Value="@context.PhoneNumber" />
+                </FormItem>
+            </div>
+            <div class="col-12">
+                <FormItem Label="@_localizer["رمزعبور"]">
+                    <InputPassword @bind-Value="@context.Password" />
+                </FormItem>
+            </div>
+            <FormItem WrapperColOffset="8" WrapperColSpan="16">
+                <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="HandleRegistration">
+                    @_localizer["ورود"]
+                </Button>
+            </FormItem>
+        </Form>
+    </div>
+</div>
+
+
+@code {
+
+    RegisterModel model = new RegisterModel();
+    public bool ShowErrors;
+    public string Error;
+
+    private async Task HandleRegistration()
+    {
+        ShowErrors = false;
+
+        var result = await _authService.Register(model);
+
+        if (result.statusCode == HttpStatusCode.OK)
+        {
+            _navigation.NavigateTo("/login");
+        }
+        else
+        {
+            Error = result.error;
+            ShowErrors = true;
+        }
+    }
+
+}

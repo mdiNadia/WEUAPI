@@ -1,0 +1,107 @@
+﻿@page "/{culture}/FileTypeCreate"
+@inject IFileTypeService _fileTypeService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-4">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <SingleSelect dataSource="source"
+                          bindValue="@context.Type"
+                          label="@_localizer["نوع"]"
+                          placeHolder="@_localizer["انتخاب کنید..."]"
+                          OnSetSelected="OnSetSelected" />
+        </div>
+        <div class="col-4">
+            <FormItem Label="@_localizer["پسوند"]">
+                <Input @bind-Value="@context.Extension" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <FormItem Label="@_localizer["سایز"]">
+                <Input @bind-Value="@context.Size" />
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    FileTypeModels.CreateFileType command = new FileTypeModels.CreateFileType();
+    public RestEception errorMessage = new RestEception();
+    public bool error = false;
+    #region Single Select
+    List<DataType> source = new List<DataType>
+   {
+      new DataType { key = "عکس", value = 0},
+      new DataType { key = "فیلم", value = 1},
+   };
+    protected async Task OnSetSelected(int selected)
+    {
+        command.Type = selected;
+    }
+    #endregion
+    private async Task Create()
+    {
+        try
+        {
+            var result = await _fileTypeService.AddEntity(command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+
+                    });
+                command = new FileTypeModels.CreateFileType();
+                await StateChangeAfterAction.InvokeAsync(true);
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+
+
+}

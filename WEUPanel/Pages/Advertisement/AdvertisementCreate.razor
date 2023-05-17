@@ -1,0 +1,496 @@
+﻿@page "/{culture}/AdvertisementCreate"
+@using Microsoft.AspNetCore.WebUtilities;
+@using TinyMCE.Blazor
+@using WEUPanel.Pages.AdvertiseCategory;
+@using static WEUPanel.Pages.AdvertiseCategory.AdvertiseCategoryModels;
+@using static WEUPanel.Pages.Advertisement.AdvertisementModels;
+@using WEUPanel.Shared.Common;
+@inject IAdveriseService _adveriseService
+@inject IAdvertiseCategory _advertiseCategory
+@inject ICountryService _countryService
+@inject IProvinceService _provinceService
+@inject ICityService _cityService
+
+@inject INeighborhoodService _neighborhoodService
+@inject NotificationService _notice
+@inject NavigationManager _navigation
+@inject IStringLocalizer<Resource> _localizer
+@inject ILocalStorageService _localStorage
+@inject State state
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Advertisements");})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16"
+      OnFinish="OnFinish"
+      OnFinishFailed="OnFinishFailed">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-12">
+            <FormItem Label="@_localizer["افزودن عکس/فیلم"]">
+
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="1" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="2" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="3" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="4" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="5" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="6" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="7" />
+                <AdFileUpload Data="new GetFileModel()" OnSetSelectedFile="OnSetSelectedFile" FileId="8" />
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+            <FormItem Label="@_localizer["عنوان"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+            <TextArea @bind-Value="@context.Description" Placeholder="@_localizer["توضیحات"]" />
+
+        </div>
+        @* <div class="col-12 m-1">
+
+        <FormItem Label="@_localizer["دسته بندی ها"]">
+        <Select Mode="multiple"
+        @bind-Values="@_selectedValues"
+        Placeholder="@_localizer["انتخاب کنید..."]"
+        EnableSearch
+        HideSelected
+        TItemValue="string"
+        TItem="string"
+        OnSelectedItemsChanged="OnSelectedItemsChangedHandler">
+        <SelectOptions>
+        @{
+        if (categories != null)
+        {
+        @foreach (var item in categories)
+        {
+        <SelectOption TItemValue="string" TItem="string" Value=@item.Id.ToString() Label="@item.Name" />
+        }
+        }
+        }
+        </SelectOptions>
+        </Select>
+        </FormItem>
+        </div>*@
+        <div class="col-12 m-1">
+
+            <SingleSelect dataSource="ca"
+                          bindValue="@context.AdCategoryIds"
+                          label="@_localizer["دسته بندی"]"
+                          placeHolder="@_localizer["یک دسته بندی انتخاب کنید"]"
+                          OnSetSelected="OnSetSelectedCat" />
+            @{
+                if (catCost != 0)
+                {
+                    <p class="alert-danger p-2">این دسته بندی به مبلغ @catCost قابل خریداری است</p>
+                }
+            }
+        </div>
+
+        <div class="col-12 m-1">
+
+            <SingleSelect dataSource="co"
+                          bindValue="@context.AdCountryId"
+                          label="@_localizer["کشور"]"
+                          placeHolder="@_localizer["یک کشور انتخاب کنید"]"
+                          OnSetSelected="OnSetSelectedCountry" />
+
+            @{
+                if (pr.Any())
+                {
+                    <FormItem Label="@_localizer["استان ها"]">
+                        <Select Mode="multiple"
+                        @bind-Values="@_selectedProvinceValues"
+                        Placeholder="@_localizer["استان ها را انتخاب کنید..."]"
+                            EnableSearch
+                            HideSelected
+                        TItemValue="string"
+                        TItem="string"
+                        OnSelectedItemsChanged="OnSelectedProvincesChangedHandler">
+                            <SelectOptions>
+                                @{
+                                    if (pr != null)
+                                    {
+                                        @foreach (var item in pr)
+                                        {
+                                            <SelectOption TItemValue="string" TItem="string" Value=@item.Id.ToString() Label="@item.Name" />
+                                        }
+                                    }
+                                }
+                            </SelectOptions>
+                        </Select>
+                    </FormItem>
+                }
+                if (ci.Any())
+                {
+                    <FormItem Label="@_localizer["شهر ها"]">
+                        <Select Mode="multiple"
+                            @bind-Values="@_selectedCitiesValues"
+                        Placeholder="@_localizer["شهرها را انتخاب کنید..."]"
+                            EnableSearch
+                            HideSelected
+                        TItemValue="string"
+                        TItem="string"
+                        OnSelectedItemsChanged="OnSelectedCitiesChangedHandler">
+                            <SelectOptions>
+                                @{
+                                    if (ci != null)
+                                    {
+                                        @foreach (var item in ci)
+                                        {
+                                            <SelectOption TItemValue="string" TItem="string" Value=@item.Id.ToString() Label="@item.Name" />
+                                        }
+                                    }
+                                }
+                            </SelectOptions>
+                        </Select>
+                    </FormItem>
+                }
+                if (ne.Any())
+                {
+                    <FormItem Label="@_localizer["محله ها"]">
+                        <Select Mode="multiple"
+                            @bind-Values="@_selectedNeighborValues"
+                        Placeholder="@_localizer["محله ها را انتخاب کنید..."]"
+                            EnableSearch
+                            HideSelected
+                        TItemValue="string"
+                        TItem="string"
+                        OnSelectedItemsChanged="OnSelectedNeighborsChangedHandler">
+                            <SelectOptions>
+                                @{
+                                    if (ne != null)
+                                    {
+                                        @foreach (var item in ne)
+                                        {
+                                            <SelectOption TItemValue="string" TItem="string" Value=@item.Id.ToString() Label="@item.Name" />
+                                        }
+                                    }
+                                }
+                            </SelectOptions>
+                        </Select>
+                    </FormItem>
+                }
+
+            }
+        </div>
+
+
+        <div class="col-12 d-flex justify-content-around m-1">
+            <FormItem Label="@_localizer["تاریخ شروع/پایان"]">
+                <div>
+                    <FormItem Label="@_localizer["تاریخ شروع"]">
+                        <jb-date-input input-type="JALALI" format="YYYY-MM-DD" valueType="JALALI" @onchange="(EventArgs) => {StartDate(EventArgs.Value.ToString());}"></jb-date-input>
+                    </FormItem>
+                </div>
+                <div>
+                    <FormItem Label="@_localizer["تاریخ پایان"]">
+                        <jb-date-input input-type="JALALI" format="YYYY-MM-DD" valueType="JALALI" @onchange="(EventArgs) => {ExpireDate(EventArgs.Value.ToString());}"></jb-date-input>
+                    </FormItem>
+                </div>
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+            <FormItem Label="@_localizer["تعداد بازدید آگهی"]">
+                <Input @bind-Value="@context.NumberOfadViews" />
+            </FormItem>
+            <FormItem Label="@_localizer["بهای هر بازدید"]">
+                <Input @bind-Value="@context.PricePerVisit" />
+            </FormItem>
+@*            <FormItem Label="@_localizer["مبلغ پرداختی شما"]">
+                <Input @bind-Value="@context.Debit" />
+            </FormItem>*@
+            <div>
+                <RadioGroup @bind-Value="@radioValue">
+                    <p>
+                        <Radio Style="@style" Value="@("0")">بعد از 700 بازدید ، آگهی رایگان شده و هزینه ای بابت بازدید های بعدی از کیف پول کسر نشود.</Radio>
+
+                    </p>
+                    <p>
+                        <Radio Style="@style" Value="@("1")">تمدید خودکار آگهی</Radio>
+
+                    </p>
+                    <p>
+                        <Radio Style="@style" Value="@("2")">بعد از 700 بازدید ، آگهی حذف شود.</Radio>
+
+                    </p>
+
+                </RadioGroup>
+            </div>
+        </div>
+        <div class="col-12 m-1">
+            <Editor Field="() => context.Text"
+                    @bind-Value="context.Text"
+                    ApiKey="n3s8fddq0ixd5m5zu1auxoxl1c5gczs68u0wqpu18iltcskl"
+                    JsConfSrc="sample"
+                    ValidationOnInput="@true" />
+            <ValidationMessage For="() => context.Text" />
+        </div>
+
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@CreateScore">
+                @_localizer["ثبت"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+
+    [Parameter]
+    public string culture { get; set; }
+    string userName = "";
+    string radioValue = "0";
+    string style = "display: initial;height:30px;line-height:30px";
+    decimal catCost;
+    AdvertisementModels.CreateAdvertisement command = new AdvertisementModels.CreateAdvertisement();
+    // List<GetNameAndId> categories;
+    List<DataType> ca = new List<DataType>();
+    List<DataType> co = new List<DataType>();
+    List<GetNameAndId> pr = new List<GetNameAndId>();
+    List<GetNameAndId> ci = new List<GetNameAndId>();
+    List<GetNameAndId> ne = new List<GetNameAndId>();
+    public RestEception errorMessage = new RestEception();
+    Dictionary<string, string> query;
+    public bool error;
+    #region Start DateTimeHandle
+    private void StartDate(string Value)
+    {
+        command.StartDate = Value;
+
+    }
+    private void ExpireDate(string Value)
+    {
+        command.ExpireDate = Value;
+    }
+    #endregion
+    protected async Task OnSetSelectedCat(int selected)
+    {
+        command.AdCategoryIds = selected;
+        catCost = cats.Where(c => c.Id == selected).Select(c => c.Cost).FirstOrDefault();
+    }
+    private async Task OnSetSelectedCountry(int selected)
+    {
+        command.AdCountryId = selected;
+        var provinces = await _provinceService.GetAllByCountryId(command.AdCountryId);
+        foreach (var item in provinces)
+        {
+            pr.Add(new GetNameAndId { Name = item.Name, Id = item.Id });
+        }
+    }
+    #region Select File
+
+    List<GetFileModel> getFileModel = new List<GetFileModel>();
+    protected void OnSetSelectedFile(GetFileModel file)
+    {
+        if (getFileModel.Any(c => c.id == file.id))
+        {
+            var OldFile = getFileModel.Find(c => c.id == file.id);
+            getFileModel.Remove(OldFile);
+            getFileModel.Add(new GetFileModel { file = file.file, id = file.id });
+
+        }
+        else
+            getFileModel.Add(new GetFileModel { file = file.file, id = file.id });
+
+    }
+    #endregion Select File
+    #region Single Select
+    List<DataType> source = new List<DataType>
+   {
+      new DataType { key = "عکس", value = 0},
+      new DataType { key = "ویدیو", value = 1}
+   };
+    protected async Task OnSetSelected(int selected)
+    {
+        command.AdFileTypeEnum = selected;
+    }
+    #endregion
+    #region Multiple Select
+    private IEnumerable<string> _selectedNeighborValues = new List<string>();
+    public List<int> NeighborsId = new List<int>();
+    private async Task OnSelectedNeighborsChangedHandler(IEnumerable<string> values)
+    {
+        NeighborsId = new List<int>();
+
+        foreach (var item in values)
+        {
+            NeighborsId.Add(Convert.ToInt32(item));
+        }
+    }
+    private IEnumerable<string> _selectedCitiesValues=new List<string>();
+    public List<int> citiesId = new List<int>();
+    private async Task OnSelectedCitiesChangedHandler(IEnumerable<string> values)
+    {
+        citiesId = new List<int>();
+
+        foreach (var item in values)
+        {
+            citiesId.Add(Convert.ToInt32(item));
+        }
+        var neighborhoods = await _neighborhoodService.GetAllByCityIds(citiesId);
+        ne = new List<GetNameAndId>();
+        foreach (var item in neighborhoods)
+        {
+            ne.Add(new GetNameAndId { Name = item.Name, Id = item.Id });
+        }
+    }
+    private IEnumerable<string> _selectedProvinceValues= new List<string>();
+    public List<int> provincesId = new List<int>();
+    private async Task OnSelectedProvincesChangedHandler(IEnumerable<string> values)
+    {
+
+        foreach (var item in values)
+        {
+            provincesId.Add(Convert.ToInt32(item));
+        }
+
+        var cities = await _cityService.GetAllByProvinceIds(provincesId);
+        ci = new List<GetNameAndId>();
+        foreach (var item in cities)
+        {
+            ci.Add(new GetNameAndId { Name = item.Name, Id = item.Id });
+        }
+
+
+    }
+    #endregion
+    List<GetCatNameDto> cats = new List<GetCatNameDto>();
+    protected override async Task OnInitializedAsync()
+    {
+        cats = await _advertiseCategory.GetAll();
+        var countries = await _countryService.GetAll();
+        //categories = result;
+        foreach (var item in cats)
+        {
+            ca.Add(new DataType { key = item.Name, value = item.Id });
+        }
+        foreach (var item in countries)
+        {
+            co.Add(new DataType { key = item.Name, value = item.Id });
+        }
+        userName = await _localStorage.GetItemAsync<string>("name");
+        query = new Dictionary<string, string>
+        {
+                    { "page", state.SelectedPage }
+        };
+    }
+
+
+    private async Task CreateScore()
+    {
+        try
+        {
+
+            var requestContent = new MultipartFormDataContent();
+            requestContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+            command.AdProvinceIds = provincesId.Distinct().ToList();
+            command.AdCityIds = citiesId.Distinct().ToList();
+            command.AdNeighborhoodIds = NeighborsId.Distinct().ToList();
+            if (getFileModel != null)
+            {
+                foreach (var item in getFileModel)
+                {
+                    if (item != null)
+                    {
+                        var stream = item.file.OpenReadStream(maxAllowedSize: 512000 * 1000);
+                        requestContent.Add(content: new StreamContent(stream, (int)item.file.Size)
+                        , name: "advertisingFiles", fileName: item.file.Name);
+                    }
+
+
+                }
+            }
+            if (command.AdProvinceIds != null)
+            {
+                foreach (var item in command.AdProvinceIds)
+                {
+                    requestContent.Add(content: new StringContent(JsonSerializer.Serialize(item), Encoding.UTF8, "application/json"), name: "adProvinceIds");
+
+                }
+            }
+            if (command.AdCityIds != null)
+            {
+                foreach (var item in command.AdCityIds)
+                {
+                    requestContent.Add(content: new StringContent(JsonSerializer.Serialize(item), Encoding.UTF8, "application/json"), name: "adCityIds");
+
+                }
+            }
+            if (command.AdNeighborhoodIds != null)
+            {
+                foreach (var item in command.AdNeighborhoodIds)
+                {
+                    requestContent.Add(content: new StringContent(JsonSerializer.Serialize(item), Encoding.UTF8, "application/json"), name: "adNeighborhoodIds");
+
+                }
+            }
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.NumberOfadViews), Encoding.UTF8, "application/json"), name: "requestBoostDto.numberOfadViews");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.PricePerVisit), Encoding.UTF8, "application/json"), name: "requestBoostDto.pricePerVisit");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.Status), Encoding.UTF8, "application/json"), name: "adCountryIds");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.AdCountryId), Encoding.UTF8, "application/json"), name: "adCountryId");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.AdCategoryIds), Encoding.UTF8, "application/json"), name: "adCategoryIds");
+            requestContent.Add(content: new StringContent(command.Name, Encoding.UTF8, "application/json"), name: "name");
+            requestContent.Add(content: new StringContent(command.Description, Encoding.UTF8, "application/json"), name: "description");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.AdFileTypeEnum), Encoding.UTF8, "application/json"), name: "adFileTypeEnum");
+            requestContent.Add(content: new StringContent(command.Text, Encoding.UTF8, "application/json"), name: "text");
+            requestContent.Add(content: new StringContent(command.StartDate, Encoding.UTF8, "application/json"), name: "startDate");
+
+            requestContent.Add(content: new StringContent(command.ExpireDate, Encoding.UTF8, "application/json"), name: "expireDate");
+
+            requestContent.Add(content: new StringContent(userName, Encoding.UTF8, "application/json"), name: "profileAdvertiser");
+
+
+            var result = await _adveriseService.AddEntityFormFile(requestContent);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+
+                    });
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/Advertisements", query));
+            }
+            else
+            {
+                error = true;
+                string response = result.Content.ReadAsStringAsync().Result;
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+    private void OnFinish(EditContext editContext)
+    {
+        Console.WriteLine($"Success:{command}");
+    }
+
+    private void OnFinishFailed(EditContext editContext)
+    {
+        Console.WriteLine($"Failed:{command}");
+    }
+
+}

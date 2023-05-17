@@ -1,0 +1,94 @@
+﻿@page "/{culture}/CurrencySettingEdit/{id:int}"
+@inject ICurrencySettingService _currencySettingService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <Input @bind-Value="@context.Id" Type="hidden" />
+        <div class="col-6">
+            <FormItem Label="@_localizer["خرید"]">
+                <Input @bind-Value="@context.Buy" />
+            </FormItem>
+        </div>
+        <div class="col-6">
+            <FormItem Label="@_localizer["فروش"]">
+                <Input @bind-Value="@context.Sale" />
+            </FormItem>
+        </div>
+
+        <div class="col-12 m-1">
+
+            <Button class="ant-btn ant-btn-primary" HtmlType="submit" OnClick="@Edit">
+                @_localizer["ثبت"]
+            </Button>
+
+            <Button class="ant-btn ant-btn-danger" Type="@ButtonType.Default" HtmlType="cancel" OnClick="()=>StateChangeAfterAction.InvokeAsync()">
+                @_localizer["انصراف"]
+            </Button>
+          
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+
+    [Parameter]
+    public int id { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    CurrencySettingModels.EditCurrencySetting command = new();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _currencySettingService.GetById(id);
+        command = model.Data.Adapt<CurrencySettingModels.EditCurrencySetting>();
+    }
+    private async Task Edit()
+    {
+        try
+        {
+            command.Id = id;
+            var result = await _currencySettingService.UpdateEntity(id, command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

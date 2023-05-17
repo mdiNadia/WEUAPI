@@ -1,0 +1,92 @@
+﻿@page "/{culture}/RejectedResultDetail/{id:int}"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Pages.Advertisement;
+@using WEUPanel.Pages.ConfirmedResult;
+@using WEUPanel.Shared.Common;
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@inject IMessageService _message
+@inject IRejectedResultService _rejectedResultService
+@inject State state
+@if (command != null)
+{
+    <div class="row">
+        <div class="goback-btn">
+            <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Advertisements");})">@_localizer["بازگشت به عقب"]</Button>
+            <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+        </div>
+        <br />
+        <div class="col-12 bg-white p-4">
+            <div class="d-flex justify-content-between flex-wrap">
+                @foreach (var item in command.Files)
+                {
+                    if (Path.GetExtension(item.Name) == ".mp4")
+                    {
+                        <video width="320" height="240" autoplay>
+                            <source src="@(_baseRequestParameter._Base_Videos_Url + "/Ad/"+ item.Name)" type="video/mp4">
+                            <source src="@(_baseRequestParameter._Base_Videos_Url + "/Ad/"+ item.Name)" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
+                    }
+                    else
+                    {
+                        <Image Class="m-1" Width="50" Src="@(_baseRequestParameter._Base_Images_Url + "/Ad/"+ item.Name)" />
+
+                    }
+
+                }
+            </div>
+            <Divider>توضیحات</Divider>
+            <p>
+                @command.Description
+            </p>
+            <Divider>متن</Divider>
+            <p>
+                @command.Text
+            </p>
+            <Divider>تاریخ شروع و انقضاء</Divider>
+            <p>
+                تاریخ شروع: @command.StartDate
+                <br />
+                تاریخ انقضاء: @command.ExpireDate
+            </p>
+   
+
+        </div>
+
+    </div>
+}
+
+@code {
+
+
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    protected RejectedResultModels.RejectedResult command = new();
+    public Dictionary<string, string> query;
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _rejectedResultService.GetById(id);
+        command = model.Data;
+        query = new Dictionary<string, string>
+               {
+                    { "page", state.SelectedPage }
+                };
+    }
+
+    private async Task StateChangeAfterAction()
+    {
+
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        await StateChangeAfterAction();
+    }
+
+}

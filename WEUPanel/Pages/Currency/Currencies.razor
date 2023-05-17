@@ -1,0 +1,224 @@
+﻿@page "/{culture}/Currencies"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Pages.CurrencySetting
+@inject ICurrencyService _currencyService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@inject ModalService _modalService
+@using WEUPanel.Shared.Common
+@inject State state
+<div>
+    @if (_showEditForm)
+    {
+        <CurrencyEdit culture="@culture" currency="@id" StateChangeAfterAction="StateChangeAfterAction" />
+        _showEditForm = false;
+    }
+</div>
+
+<br />
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+        <Table Bordered=@true
+           Loading="_loading"
+           Responsive="true"
+           TItem="CurrencyModels.Currency"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["عنوان"]" Property="c=>c.CurrencyName">
+                <a>@context.CurrencyName</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["واحد پول پیشفرض"]" Property="c=>c.IsDefault">
+                <Switch Disabled @bind-Value="@context.IsDefault"></Switch>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                   
+                        <Button Class="bg-warning small m-1" OnClick="()=>EditData(context.Id)">@_localizer["ویرایش"]</Button>
+             
+                        <Button Class="bg-info small" OnClick="()=>CurrencySettingHandle(context.Id)">@_localizer["خرید و فروشِ جدید"]</Button>
+
+                        <Button Class="bg-danger small m-1" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">@_localizer["حذف"]</Button>
+                </Space>
+            </ActionColumn>
+        </Table>
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@currency.TotalPages
+                           totalRecords=@currency.TotalRecords
+                           nextPage=@currency.NextPage
+                           previousPage=@currency.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+}
+<Modal Title=""
+       Visible="@_create"
+       OnCancel="HandleCancel"
+       DestroyOnClose="true"
+       Footer="null">
+    <CurrencySettingCreate id="@id" StateChangeAfterAction="StateChangeAfterAction" />
+</Modal>
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public bool _showEditForm = false;
+    public int id;
+    bool _create = false;
+    protected async Task StateChangeAfterAction()
+    {
+        _create = false;
+        _showEditForm = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    void EditData(int id)
+    {
+        this._showEditForm = true;
+        this.id = id;
+    }
+    void CurrencySettingHandle(int id)
+    {
+        this.id = id;
+        _create = true;
+    }
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        await StateChangeAfterAction();
+    }
+    ITable tableRef;
+    PagedResponse<IEnumerable<CurrencyModels.Currency>> currency;
+    IEnumerable<CurrencyModels.Currency> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        currency = await _currencyService.GetAllByPaging(_pageIndex,10);
+        _loading = false;
+
+        dataTable = currency.Data;
+        _pageIndex = currency.PageNumber;
+        _pageSize = currency.PageSize;
+        _total = currency.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        currency = await _currencyService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = currency.Data;
+        _pageIndex = currency.PageNumber;
+        _pageSize = currency.PageSize;
+        _total = currency.TotalRecords;
+        ChangeUrl();
+
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        currency = await _currencyService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = currency.Data;
+        _pageIndex = currency.PageNumber;
+        _pageSize = currency.PageSize;
+        _total = currency.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        currency = await _currencyService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = currency.Data;
+        _pageIndex = currency.PageNumber;
+        _pageSize = currency.PageSize;
+        _total = currency.TotalRecords;
+        ChangeUrl();
+    }
+    public RestEception errorMessage = new RestEception();
+    protected async Task DeleteData(int id)
+    {
+
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _currencyService.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+                StateHasChanged();
+            }
+            await _message.Success($"با موفقیت حذف شد", 2);
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = currency.Data;
+            _total = _total + 1;
+
+        }
+
+
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, int id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+
+}
+
+

@@ -1,0 +1,260 @@
+﻿@page "/{culture}/Users"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Pages.Profile
+@inject IUserService _userService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject BaseRequestParameter _baseRequestParameter
+
+@inject IStringLocalizer<Resource> _localizer
+@inject ModalService _modalService
+@using WEUPanel.Shared.Common
+@inject State state
+
+<div>
+    <a href="/@culture/userCreate" class="btn bg-primary btn-larg" style="color:white">
+        <Icon Type="plus" Theme="outline" Style="margin-bottom:7px" />
+        @_localizer["افزودن"]
+    </a>
+</div>
+
+<br />
+
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+
+
+
+        <Table Bordered=@true
+           Loading="_loading"
+           Responsive="true"
+           TItem="UserModels.User"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]"
+                        Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نام کاربری"]" Property="c=>c.UserName">
+                <a>@context.UserName</a>
+            </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["نام"]" Property="c=>c.FirstName">
+                <a>@context.FirstName</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["فامیلی"]" Property="c=>c.LastName">
+                <a>@context.LastName</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["ایمیل"]" Property="c=>c.Email">
+                <a>@context.Email</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["شماره تماس"]" Property="c=>c.PhoneNumber">
+                <a>@context.PhoneNumber</a>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                   
+                        <Button Class="bg-info small m-1" OnClick="()=>Profile(context.ProfileId,true)">@_localizer["پروفایل‌"]</Button>
+               
+                        <Button Class="bg-primary small" OnClick="()=>Messages(context.ProfileUsername)">@_localizer["چت‌ها‌"]</Button>
+                
+                        <Button Class="bg-warning small m-1" OnClick="()=>EditData(context.Id)">@_localizer["ویرایش"]</Button>
+             
+                        <Button Class="bg-danger small" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">@_localizer["حذف"]</Button>
+                    
+
+                </Space>
+            </ActionColumn>
+        </Table>
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@users.TotalPages
+                           totalRecords=@users.TotalRecords
+                           nextPage=@users.NextPage
+                           previousPage=@users.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+
+}
+
+<Modal Title="@_localizer["پروفایل‌"]"
+       Visible="@_visible"
+       OnOk="@HandleOk"
+       OnCancel="@HandleCancel"
+       OkText="@_localizer["ویرایش‌"].ToString()"
+       CancelText="@_localizer["انصراف‌"].ToString()"
+       DestroyOnClose="true"
+       Width="@("50vw")">
+    <ProfileDetails id="@id" />
+</Modal>
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+
+        [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public bool _visible = false;
+    ITable tableRef;
+    PagedResponse<IEnumerable<UserModels.User>> users;
+    IEnumerable<UserModels.User> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        users = await _userService.GetAllByPaging(_pageIndex, 10);
+        _loading = false;
+
+        dataTable = users.Data;
+        _pageIndex = users.PageNumber;
+        _pageSize = users.PageSize;
+        _total = users.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        users = await _userService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = users.Data;
+        _pageIndex = users.PageNumber;
+        _pageSize = users.PageSize;
+        _total = users.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        users = await _userService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = users.Data;
+        _pageIndex = users.PageNumber;
+        _pageSize = users.PageSize;
+        _total = users.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        users = await _userService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = users.Data;
+        _pageIndex = users.PageNumber;
+        _pageSize = users.PageSize;
+        _total = users.TotalRecords;
+        ChangeUrl();
+    }
+    void EditData(string id)
+    {
+        state.SetPage(_pageIndex.ToString());
+        _navigation.NavigateTo(culture + "/UserEdit/" + id);
+    }
+    void Messages(string profileUsername)
+    {
+        state.SetPage(_pageIndex.ToString());
+        _navigation.NavigateTo(culture + "/Message/" + profileUsername
+        );
+    }
+    public RestEception errorMessage = new RestEception();
+    protected async Task DeleteData(string id)
+    {
+
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _userService.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+                StateHasChanged();
+            }
+            await _message.Success($"با موفقیت حذف شد", 2);
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage =Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = users.Data;
+            _total = _total + 1;
+
+        }
+
+
+
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, string id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+
+
+    //popUp//
+    public int id;
+    protected async Task Profile(int id,bool value)
+    {
+  
+        this.id = id;
+        _visible = value;
+    }
+    private void HandleOk(MouseEventArgs e)
+    {
+        state.SetPage(_pageIndex.ToString());
+        _visible = false;
+        _navigation.NavigateTo(culture + "/ProfileEdit/" + id);
+    }
+    private async Task HandleCancel(MouseEventArgs e)
+    {
+        await Profile(0,false);
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+

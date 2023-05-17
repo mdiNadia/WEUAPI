@@ -1,0 +1,145 @@
+﻿@page "/{culture}/UserEdit/{id}"
+@using Microsoft.AspNetCore.WebUtilities;
+@inject IUserService _userService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@using WEUPanel.Shared.Common
+@inject State state
+@inject IUserRoleService _userRoleService
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/users", query));})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <Input @bind-Value=@context.Id Type="hidden" />
+        <div class="col-6">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.FirstName" />
+            </FormItem>
+        </div>
+        <div class="col-6">
+            <FormItem Label="@_localizer["نام خانوادگی"]">
+                <Input @bind-Value="@context.LastName" />
+            </FormItem>
+        </div>
+        <div class="col-6">
+            <FormItem Label="@_localizer["نام کاربری"]">
+                <Input @bind-Value="@context.UserName" />
+            </FormItem>
+        </div>
+        <div class="col-6">
+            <FormItem Label="@_localizer["ایمیل"]">
+                <Input @bind-Value="@context.Email" />
+            </FormItem>
+        </div>
+        <div class="col-6">
+            <FormItem Label="@_localizer["تلفن"]">
+                <Input @bind-Value="@context.PhoneNumber" />
+            </FormItem>
+        </div>
+        <div class="col-6">
+            <FormItem Label="@_localizer["رمزعبور"]">
+                <InputPassword @bind-Value="@context.Password" />
+            </FormItem>
+        </div>
+
+        <div class="col-12">
+            <SingleSelectString dataSource="roles"
+                                bindValue="@context.Role"
+                                label="@_localizer["نقش"]"
+                                placeHolder="@_localizer["یک نقش انتخاب کنید..."]"
+                                OnSetSelected="OnSetSelected" />
+        </div>
+
+        <div class="col-12 m-1">
+
+            <Button class="ant-btn ant-btn-primary" HtmlType="submit" OnClick="@Edit">
+                @_localizer["ثبت"]
+            </Button>
+
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public string id { get; set; }
+    protected UserModels.EditUser command = new();
+    public RestEception errorMessage = new RestEception();
+    Dictionary<string, string> query;
+    public bool error = false;
+    public List<GetNameAndIdString> userRoles = new();
+    List<DataTypeString> roles = new List<DataTypeString>();
+    protected override async Task OnInitializedAsync()
+    {
+
+        var model = await _userService.GetById(id);
+        command = model.Data.Adapt<UserModels.EditUser>();
+        query = new Dictionary<string, string>
+        {
+                    { "page", state.SelectedPage }
+        };
+        userRoles = await _userRoleService.GetAll();
+        foreach (var item in userRoles)
+        {
+            roles.Add(new DataTypeString { key = item.Name, value = item.Name });
+        }
+    }
+    protected async Task OnSetSelected(string selected)
+    {
+        command.Role = selected;
+    }
+
+    private async Task Edit()
+    {
+        try
+        {
+
+            var result = await _userService.UpdateEntity(id, command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+
+
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/users", query));
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

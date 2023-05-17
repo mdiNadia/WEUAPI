@@ -1,0 +1,256 @@
+﻿@page "/{culture}/Advertisements"
+@using Microsoft.AspNetCore.WebUtilities;
+@using Microsoft.Extensions.Primitives;
+@using System.Web;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Shared.Common;
+@inject IAdveriseService _adveriseService
+@inject IConfirmedResultservice _confirmedAdService
+
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject ModalService _modalService
+@inject IStringLocalizer<Resource> _localizer
+@inject State state
+@using WEUPanel.Helpers
+<style>
+    .cat {
+        background-color: rgb(0 255 102 / 15%);
+        padding: 5px;
+        text-align: center;
+        border: #1af774 1px solid;
+        margin: 0 1px;
+    }
+</style>
+
+<div>
+    <a href="/@culture/advertisementCreate" class="btn bg-primary btn-larg" style="color:white">
+        <Icon Type="plus" Theme="outline" Style="margin-bottom:7px" />
+        @_localizer["افزودن"]
+    </a>
+</div>
+
+
+
+<br />
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+
+
+        <Table Bordered
+           Responsive="true"
+           Loading="_loading"
+           TItem="AdvertisementModels.Advertisement"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["تصاویر/ویدیو"]" Property="c=>c.Files">
+                @if (context.Files != null)
+                {
+                    var ex = Path.GetExtension(context.Files.FirstOrDefault()?.Name);
+                    if (ex == ".mp4")
+                    {
+                        <video width="100" controls>
+                            <source src="@(_baseRequestParameter._Base_Videos_Url + "/Ad/"+ context.Files.FirstOrDefault()?.Name)" type="video/mp4">
+                            <source src="@(_baseRequestParameter._Base_Videos_Url + "/Ad/"+ context.Files.FirstOrDefault()?.Name)" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
+                    }
+                    else
+                    {
+                        <Image Class="m-1" Width="25" Src="@(_baseRequestParameter._Base_Images_Url + "/Ad/"+ context.Files.FirstOrDefault()?.Name)" />
+                    }
+                }
+
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نام"]" Property="c=>c.Name">
+                <a>@context.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["وضعیت"]" Property="c=>c.AdStatus">
+                <a>@context.AdStatus</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تاریخ انقضا"]" Property="c=>c.ExpireDate">
+                <a>@context.ExpireDate</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تاریخ ایجاد"]" Property="c=>c.CreationDate">
+                <a>@context.CreationDate</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تعداد لایک"]" Property="c=>c.Like">
+                <a>@context.Like</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تعداد بازدید"]" Property="c=>c.View">
+                <a>@context.View</a>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+
+                    <Button Class="bg-info small m-1" OnClick="()=>Detail(context.Id,true)">@_localizer["مشاهده"]</Button>
+                    <Button Class="bg-warning small " OnClick="()=>EditData(context.Id, culture)">@_localizer["ویرایش"]</Button>
+                    <Button Class="bg-danger small m-1" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">@_localizer["حذف"]</Button>
+
+                </Space>
+            </ActionColumn>
+        </Table>
+
+
+
+        <br />
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@advertisements.TotalPages
+                           totalRecords=@advertisements.TotalRecords
+                           nextPage=@advertisements.NextPage
+                           previousPage=@advertisements.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+}
+
+
+
+@code {
+
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    ITable tableRef;
+    PagedResponse<IEnumerable<AdvertisementModels.Advertisement>> advertisements;
+    IEnumerable<AdvertisementModels.Advertisement> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        advertisements = await _adveriseService.GetAllByPaging(_pageIndex, 10);
+        _loading = false;
+        dataTable = advertisements.Data;
+        _pageIndex = advertisements.PageNumber;
+        _pageSize = advertisements.PageSize;
+        _total = advertisements.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        advertisements = await _adveriseService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = advertisements.Data;
+        _pageIndex = advertisements.PageNumber;
+        _pageSize = advertisements.PageSize;
+        _total = advertisements.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        advertisements = await _adveriseService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = advertisements.Data;
+        _pageIndex = advertisements.PageNumber;
+        _pageSize = advertisements.PageSize;
+        _total = advertisements.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+
+        advertisements = await _adveriseService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = advertisements.Data;
+        _pageIndex = advertisements.PageNumber;
+        _pageSize = advertisements.PageSize;
+        _total = advertisements.TotalRecords;
+        ChangeUrl();
+
+    }
+
+    void EditData(int id, string culture)
+    {
+
+        state.SetPage(_pageIndex.ToString());
+        _navigation.NavigateTo(culture + "/AdvertisementEdit/" + id);
+
+    }
+    public RestEception errorMessage = new RestEception();
+    protected async Task DeleteData(int id)
+    {
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _adveriseService.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+                StateHasChanged();
+            }
+            await _message.Success($"با موفقیت حذف شد", 2);
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = advertisements.Data;
+            _total = _total + 1;
+
+        }
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, int id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+    void Detail(int id, bool value)
+    {
+        state.SetPage(_pageIndex.ToString());
+        _navigation.NavigateTo(culture + "/AdvertisementDetail/" + id);
+    }
+
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}

@@ -1,0 +1,144 @@
+﻿@page "/{culture}/WalletCreate"
+@using WEUPanel.Pages.Advertisement;
+@inject IWalletService _walletService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject ICurrencyService _currencyService
+@inject IUserService _userService
+@inject IStringLocalizer<Resource> _localizer
+@using WEUPanel.Shared.Common
+@inject State state
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Wallets");})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-sm-12 col-md-4">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <FormItem Label="@_localizer["موجودی"]">
+                <Input @bind-Value="@context.TotalCredit" />
+            </FormItem>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <FormItem Label="@_localizer["فعال باشد؟"]">
+                <Switch @bind-Value="@context.IsActive"></Switch>
+                <span class="m-1"></span>
+            </FormItem>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <SingleSelectString dataSource="users"
+                          bindValue="@context.UserId"
+                                label="@_localizer["مالک"]"
+                                placeHolder="@_localizer["انتخاب کنید..."]"
+                          OnSetSelected="OnSetSelectedUser" />
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <SingleSelect dataSource="currencies"
+                          bindValue="@context.CurrencyId"
+                          label="@_localizer["واحد پولی"]"
+                          placeHolder="@_localizer["انتخاب کنید..."]"
+                          OnSetSelected="OnSetSelectedCurrency" />
+        </div>
+        <div class="col-sm-12 col-md-12">
+
+                <TextArea @bind-Value="@context.Description" Placeholder="@_localizer["توضیحات"]" />
+         
+        </div>
+        <div class="col-12 m-1">
+       
+                <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+                </Button>
+        
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    WalletModels.CreateWallet command = new WalletModels.CreateWallet();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+
+    #region Single Select
+    List<DataType> currencies = new List<DataType>();
+    List<DataTypeString> users = new List<DataTypeString>();
+    protected override async Task OnInitializedAsync()
+    {
+        var Currencies = await _currencyService.GetAll();
+        var Users = await _userService.GetAll();
+        foreach (var item in Currencies)
+        {
+            currencies.Add(new DataType { key = item.Name, value = item.Id });
+        }
+       
+        foreach (var item in Users)
+        {
+            users.Add(new DataTypeString { key = item.Name, value = item.Id });
+        }
+    }
+    protected async Task OnSetSelectedCurrency(int selected)
+    {
+        command.CurrencyId = selected;
+    }
+    protected async Task OnSetSelectedUser(string selected)
+    {
+        command.UserId = selected;
+    }
+    #endregion
+    private async Task Create()
+    {
+        try
+        {
+            var result = await _walletService.AddEntity(command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+
+                    });
+                command = new WalletModels.CreateWallet();
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+
+
+}

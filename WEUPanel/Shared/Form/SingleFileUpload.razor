@@ -1,0 +1,59 @@
+﻿
+<div>
+    <InputFile OnChange="@OnFileSelection" />
+    @{
+        if (imgFile != null)
+        {
+            <div class="row mt-1">
+                <div class="col-3 mt-1 text-center">
+
+                    @if (imgFile.ContentType == "video/mp4")
+                    {
+                    <video width="100" controls>
+                        <source src="@(imgUrl??FilePath+FileName)" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    }
+                    else
+                    {
+                    <img class="m-auto" src="@(imgUrl??FilePath+FileName)" style="width:100px" />
+                    }
+
+
+                </div>
+
+
+            </div>
+        }
+
+    }
+
+</div>
+
+
+@code {
+    [Parameter]
+    public EventCallback<IBrowserFile> OnSetSelectedFile { get; set; }
+    [Parameter]
+    public string? FileName { get; set; }
+    [Parameter]
+    public string? FilePath { get; set; }
+    string imgUrl;
+    public byte[] buffers;
+
+    public IBrowserFile imgFile;
+
+    private async Task OnFileSelection(InputFileChangeEventArgs e)
+    {
+        imgFile = e.File;
+        buffers = new byte[imgFile.Size];
+        await imgFile.OpenReadStream(imgFile.Size).ReadAsync(buffers);
+        string imageType = imgFile.ContentType;
+        imgUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffers)}";
+        await OnSetSelectedFile.InvokeAsync(imgFile);
+
+    }
+
+
+
+}

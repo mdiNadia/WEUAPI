@@ -1,0 +1,91 @@
+﻿@page "/{culture}/AppSetting"
+@inject IAppSettingService _appSettingService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject IStringLocalizer<Resource> _localizer
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <Input @bind-Value=@context.Id Type="hidden" />
+        <div class="col-12">
+            <FormItem Label="@_localizer["کارمزد"]">
+                <Input @bind-Value="@context.AppFee" />
+            </FormItem>
+        </div>
+                <div class="col-12">
+            <FormItem Label="@_localizer["حداقل هزینه شتابدهی"]">
+                <Input @bind-Value="@context.MinBoostAmount" />
+            </FormItem>
+        </div>
+        <div class="col-12">
+            <FormItem Label="@_localizer["حداقل سود هر کاربر"]">
+                <Input @bind-Value="@context.MinCostPerVisit" />
+            </FormItem>
+        </div>
+        <div class="col-12">
+            <FormItem Label="@_localizer["حداقل بازدید"]">
+                <Input @bind-Value="@context.MinView" />
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+                <Button class="ant-btn ant-btn-primary" HtmlType="submit" OnClick="@Edit">
+                @_localizer["ثبت"]
+                </Button>
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    protected AppSettingModels.EditAppSetting command = new();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _appSettingService.GetAppSetting();
+        command = model.Data.Adapt<AppSettingModels.EditAppSetting>();
+    }
+    private async Task Edit()
+    {
+        try
+        {
+            var result = await _appSettingService.UpdateEntity(command.Id, command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

@@ -1,0 +1,131 @@
+﻿@page "/{culture}/ProfileScoreCreate"
+@inject IProfileScoreService _profileScoreService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-12">
+            <FormItem Label="@_localizer["نمادک"]">
+                <SingleFileUpload OnSetSelectedFile="OnSetSelectedFile" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <FormItem Label="@_localizer["امتیاز"]">
+                <Input @bind-Value="@context.Score" />
+            </FormItem>
+        </div>
+        <div class="col-4">
+            <SingleSelect dataSource="source"
+                          bindValue="@context.ProfileType"
+                          label="@_localizer["نوع پروفایل"]"
+                          placeHolder="@_localizer["انتخاب کنید..."]"
+                          OnSetSelected="OnSetSelected" />
+        </div>
+
+
+        <div class="col-12 m-1">
+            
+                <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+                </Button>
+          
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    ProfileScoreModels.CreateProfileScore command = new ProfileScoreModels.CreateProfileScore();
+    public RestEception errorMessage= new RestEception();
+    public bool error = false;
+    #region Single Select
+    List<DataType> source = new List<DataType>
+   {
+      new DataType { key = "شخصی", value = 0},
+      new DataType { key = "تجاری", value = 1},
+   };
+    protected async Task OnSetSelected(int selected)
+    {
+        command.ProfileType = selected;
+    }
+    #endregion
+    #region Select File
+    public IBrowserFile imgFile;
+    protected async Task OnSetSelectedFile(IBrowserFile file)
+    {
+        imgFile = file;
+    }
+    #endregion Select File
+    private async Task Create()
+    {
+        try
+        {
+
+            var requestContent = new MultipartFormDataContent();
+            requestContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+
+            if (imgFile != null)
+            {
+
+                var stream = imgFile.OpenReadStream(maxAllowedSize: 512000 * 1000);
+                requestContent.Add(content: new StreamContent(stream, (int)imgFile.Size), name: "iconFile", fileName: imgFile.Name);
+
+            }
+            requestContent.Add(content: new StringContent(command.Name, Encoding.UTF8, "application/json"), name: "name");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.Score), Encoding.UTF8, "application/json"), name: "score");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.ProfileType), Encoding.UTF8, "application/json"), name: "profileType");
+            var result = await _profileScoreService.AddEntityFormFile(requestContent);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+
+                    });
+
+
+                command = new ProfileScoreModels.CreateProfileScore();
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+
+
+}

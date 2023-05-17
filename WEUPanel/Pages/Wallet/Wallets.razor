@@ -1,0 +1,193 @@
+﻿@page "/{culture}/wallets"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@inject IWalletService _walletService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject BaseRequestParameter _baseRequestParameter
+
+@inject IStringLocalizer<Resource> _localizer
+@using WEUPanel.Shared.Common
+@inject State state
+<div>
+    <div>
+        @if (_showEditForm)
+        {
+            <WalletEdit culture="@culture" id="@id" StateChangeAfterAction="StateChangeAfterAction" />
+            _showEditForm = false;
+        }
+        else
+        {
+            <a href="/@culture/WalletCreate" class="btn bg-primary btn-larg" style="color:white">
+                <Icon Type="plus" Theme="outline" Style="margin-bottom:7px" />
+                @_localizer["افزودن"]
+            </a>
+            //<WalletCreate culture="@culture" StateChangeAfterAction="StateChangeAfterAction" />
+        }
+
+    </div>
+</div>
+
+<br />
+
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+    <div class="col-md-12">
+        <Table Bordered=@true
+           Loading="_loading"
+           Responsive="true"
+           TItem="WalletModels.Wallet"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]"
+                        Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نام"]" Property="c=>c.Name">
+                <a>@context.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["صاحب کیف"]" Property="c=>c.User">
+                <a>@context.User.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["واحد پول کیف"]" Property="c=>c.Currency">
+                <a>@context.Currency.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["توضیحات"]" Property="c=>c.Description">
+                <a>@context.Description</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["فعال است؟"]" Property="c=>c.IsActive">
+                <Switch Disabled Value="@context.IsActive"></Switch>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["موجودی"]" Property="c=>c.TotalCredit">
+                <a>@context.TotalCredit</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تاریخ ایجاد"]" Property="c=>c.CreationDate">
+                <a>@context.CreationDate</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["تاریخ به روزرسانی"]" Property="c=>c.UpdateDate">
+                <a>@context.UpdateDate</a>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                        <Button Class="bg-warning small m-1" OnClick="()=>EditData(context.Id)">@_localizer["ویرایش"]</Button>
+                </Space>
+            </ActionColumn>
+        </Table>
+
+
+
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@wallets.TotalPages
+                           totalRecords=@wallets.TotalRecords
+                           nextPage=@wallets.NextPage
+                           previousPage=@wallets.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>   
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+
+}
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    public bool _showEditForm = false;
+    public int id;
+    protected async Task StateChangeAfterAction()
+    {
+        _showEditForm = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    void EditData(int id)
+    {
+        this._showEditForm = true;
+        this.id = id;
+    }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    ITable tableRef;
+    PagedResponse<IEnumerable<WalletModels.Wallet>> wallets;
+    IEnumerable<WalletModels.Wallet> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        wallets = await _walletService.GetAllByPaging(_pageIndex,_pageSize);
+        _loading = false;
+
+        dataTable = wallets.Data;
+        _pageIndex = wallets.PageNumber;
+        _pageSize = wallets.PageSize;
+        _total = wallets.TotalRecords;
+         state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        wallets = await _walletService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = wallets.Data;
+        _pageIndex = wallets.PageNumber;
+        _pageSize = wallets.PageSize;
+        _total = wallets.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        wallets = await _walletService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = wallets.Data;
+        _pageIndex = wallets.PageNumber;
+        _pageSize = wallets.PageSize;
+        _total = wallets.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        wallets = await _walletService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = wallets.Data;
+        _pageIndex = wallets.PageNumber;
+        _pageSize = wallets.PageSize;
+        _total = wallets.TotalRecords;
+        ChangeUrl();
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+
+

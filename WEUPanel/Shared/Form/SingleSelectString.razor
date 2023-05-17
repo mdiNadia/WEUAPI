@@ -1,0 +1,39 @@
+﻿@using AntDesign
+@inject IStringLocalizer<Resource> _localizer
+<FormItem Label="@label">
+    <Select DataSource="@dataSource"
+            TItem="DataTypeString"
+            TItemValue="string"
+            @bind-Value="@bindValue"
+            LabelName="@_localizer[nameof(DataType.key)]"
+            ValueName="@_localizer[nameof(DataType.value)]"
+            Placeholder="@placeHolder"
+            EnableSearch
+            OnSelectedItemChanged="OnSelectedValueChanged"
+            
+    >
+    </Select>
+</FormItem>
+
+@code {
+    [Parameter]
+    public List<DataTypeString> dataSource { get; set; }
+    [Parameter]
+    public string bindValue { get; set; }
+    [Parameter]
+    public string placeHolder { get; set; }
+    [Parameter]
+    public string label { get; set; }
+    //protected int selected{ get; set; }
+    [Parameter]
+    public EventCallback<string> OnSetSelected { get; set; }
+
+    private async void OnSelectedValueChanged(DataTypeString value)
+    {
+        //selected = value.value;
+        await OnSetSelected.InvokeAsync(value.value);
+        Console.WriteLine(value.value);
+
+    }
+
+}

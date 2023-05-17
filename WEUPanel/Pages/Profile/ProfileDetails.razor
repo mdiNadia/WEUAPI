@@ -1,0 +1,45 @@
+﻿@page "/{culture}/ProfileDetails/{id:int}"
+@inject IProfileService _profileService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@if (command != null)
+{
+    <div class="row">
+        <div class="col-md-6">
+          <Image Src="@(_baseRequestParameter._Base_Images_Url + "/Profile/" + command.AvatarName)"/>
+
+        </div>
+        <div class="col-md-6">
+            <h3>@_localizer["نام"]: @command.Name</h3>
+            <h3>@_localizer["نام کاربری"]: @command.Username</h3>
+            <p>
+                @_localizer["تاریخ ثبت‌نام"]: @command.CreationDate<br />
+                @_localizer["امتیاز"]: @command.Score<br />
+                @_localizer["لینک"]: @command.Link<br />
+                @_localizer["تعداد بلاک‌شوندگی"]: @command.BlockedCount<br />
+                @_localizer["تعداد دنبال‌کننده‌ها"]: @command.FollowersCount<br />
+                @_localizer["تعداد دنبال‌شونده‌ها"]: @command.FollowingCount
+                </p>
+        </div>
+        <div class="col-md-12">
+            <p>@_localizer["بیوگرافی"]: @command.Bio</p>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    protected ProfileModels.Profile command = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _profileService.GetById(id);
+        command = model.Data.Adapt<ProfileModels.Profile>();
+    }
+
+}

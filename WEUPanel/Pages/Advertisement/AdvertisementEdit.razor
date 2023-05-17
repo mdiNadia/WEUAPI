@@ -1,0 +1,237 @@
+﻿@page "/{culture}/AdvertisementEdit/{id:int}"
+@using Microsoft.AspNetCore.WebUtilities;
+@using TinyMCE.Blazor
+@using WEUPanel.Pages.AdvertiseCategory;
+@using WEUPanel.Shared.Common;
+@using WEUPanel.Pages.Advertisement;
+@using WEUPanel.Shared.Form;
+@inject IAdvertiseCategory _advertiseCategory
+@inject IAdveriseService _adveriseService
+@inject NotificationService _notice
+@inject NavigationManager _navigation
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@inject State state
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/Advertisements");})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16"
+      OnFinish="OnFinish"
+      OnFinishFailed="OnFinishFailed">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <Input @bind-Value=@context.Id Type="hidden" />
+        <Input @bind-Value=@context.AdvertiserId Type="hidden" />
+        <div class="col-12">
+            <FormItem Label="@_localizer["افزودن عکس/فیلم"]">
+                @{
+                    var index = 0;
+                }
+                @foreach (var item in context.Files)
+                {
+                    index++;
+                    if (Path.GetExtension(item.Name) == ".mp4")
+                    {
+                        <SingleFileUploadWithFileId OnSetSelectedFile="OnSetSelectedFile" id="item.Id" FileName="@item.Name" FilePath="@(_baseRequestParameter._Base_Videos_Url + "/Ad/")" FileId="@index" />
+                    }
+                    else
+                    {
+                        <SingleFileUploadWithFileId OnSetSelectedFile="OnSetSelectedFile" id="item.Id" FileName="@item.Name" FilePath="@(_baseRequestParameter._Base_Images_Url + "/Ad/")" FileId="@index" />
+
+                    }
+
+                }
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+            <FormItem Label="@_localizer["عنوان"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+            <TextArea @bind-Value="@context.Description" Placeholder="@_localizer["توضیحات"]" />
+
+        </div>
+
+
+
+        <div class="col-12 d-flex justify-content-around m-1">
+            <FormItem Label="@_localizer["تاریخ شروع/پایان"]">
+                <div>
+                    <FormItem Label="@_localizer["تاریخ شروع"]">
+                        <jb-date-input format="YYYY-MM-DD" valueType="JALALI" input-type="JALALI" value="@command.StartDate.Substring(0,10)" @onchange="(EventArgs) => {StartDate(EventArgs.Value.ToString());}"></jb-date-input>
+                    </FormItem>
+                </div>
+                <div>
+                    <FormItem Label="@_localizer["تاریخ پایان"]">
+                        <jb-date-input format="YYYY-MM-DD" valueType="JALALI" input-type="JALALI" value="@command.ExpireDate.Substring(0,10)" @onchange="(EventArgs) => {ExpireDate(EventArgs.Value.ToString());}"></jb-date-input>
+                    </FormItem>
+                </div>
+            </FormItem>
+        </div>
+        <div class="col-12 m-1">
+
+            @*<TextArea @bind-Value="@context.Text" />*@
+            <Editor Field="() => context.Text"
+                    @bind-Value="context.Text"
+                    ApiKey="n3s8fddq0ixd5m5zu1auxoxl1c5gczs68u0wqpu18iltcskl"
+                    JsConfSrc="sample"
+                    ValidationOnInput="@true" />
+            <ValidationMessage For="() => context.Text" />
+
+        </div>
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@EditScore">
+                @_localizer["ثبت"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    int index = 8;
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    AdvertisementModels.EditAdvertisement command = new();
+    public RestEception errorMessage = new RestEception();
+    public bool error;
+    #region Start DateTimeHandle
+    private void StartDate(string Value)
+    {
+        command.StartDate = Value;
+
+    }
+    private void ExpireDate(string Value)
+    {
+        command.ExpireDate = Value;
+    }
+    #region Select File
+    List<AdvertisementModels.RequestFiles> files = new List<AdvertisementModels.RequestFiles>();
+    protected async Task OnSetSelectedFile(SingleFileUploadWithFileId.CallBack file)
+    {
+
+        FileType fileType = FileType.Image;
+        if (file.getFileModel.file.ContentType == "image/png"
+        || file.getFileModel.file.ContentType == "image/jpg"
+        || file.getFileModel.file.ContentType == "image/webp"
+        || file.getFileModel.file.ContentType == "image/jpeg"
+        || file.getFileModel.file.ContentType == "image/svg")
+            fileType = FileType.Image;
+        else
+            fileType = FileType.Video;
+
+
+        if (files.Any(c => c.GetFileModel.id == file.id))
+        {
+            var OldFile = files.Find(c => c.GetFileModel.id == file.id);
+            files.Remove(OldFile);
+        }
+        files.Add(new AdvertisementModels.RequestFiles()
+            {
+                AttachmentId = file.id,
+                FileType = fileType,
+                IsChanged = true,
+                GetFileModel = new GetFileModel { file = file.getFileModel.file, id = file.id },
+            });
+
+    }
+    #endregion Select File
+    #endregion
+    Dictionary<string,string> query;
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _adveriseService.GetById(id);
+
+        command = model.Data.Adapt<AdvertisementModels.EditAdvertisement>();
+         query = new Dictionary<string, string>
+               {
+                    { "page", state.SelectedPage }
+                };
+    }
+
+
+    private async Task EditScore()
+    {
+        try
+        {
+
+            var requestContent = new MultipartFormDataContent();
+            requestContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+            if (files != null)
+            {
+                for (int i = 0; i < files.Count(); i++)
+                {
+                    var stream = files[i].GetFileModel.file.OpenReadStream(maxAllowedSize: 512000 * 1000);
+                    requestContent.Add(content: new StreamContent(stream, (int)files[i].GetFileModel.file.Size), name: $"advertisingFiles[{i}].updatedFile", fileName: files[i].GetFileModel.file.Name);
+                    requestContent.Add(content: new StringContent(JsonSerializer.Serialize(files[i].AttachmentId), Encoding.UTF8, "application/json"), name: $"advertisingFiles[{i}].attachmentId");
+                    requestContent.Add(content: new StringContent(JsonSerializer.Serialize(files[i].IsChanged), Encoding.UTF8, "application/json"), name: $"advertisingFiles[{i}].isChanged");
+                    requestContent.Add(content: new StringContent(JsonSerializer.Serialize(files[i].FileType), Encoding.UTF8, "application/json"), name: $"advertisingFiles[{i}].fileType");
+                }
+            }
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.Id), Encoding.UTF8, "application/json"), name: "Id");
+
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.AdCategoryIds), Encoding.UTF8, "application/json"), name: "adCategoryIds");
+            requestContent.Add(content: new StringContent(command.Name, Encoding.UTF8, "application/json"), name: "name");
+            requestContent.Add(content: new StringContent(command.Description, Encoding.UTF8, "application/json"), name: "description");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.AdFileTypeEnum), Encoding.UTF8, "application/json"), name: "adFileTypeEnum");
+            requestContent.Add(content: new StringContent(command.Text, Encoding.UTF8, "application/json"), name: "text");
+            requestContent.Add(content: new StringContent(command.StartDate, Encoding.UTF8, "application/json"), name: "startDate");
+            requestContent.Add(content: new StringContent(command.ExpireDate, Encoding.UTF8, "application/json"), name: "expireDate");
+            requestContent.Add(content: new StringContent(JsonSerializer.Serialize(command.AdvertiserId), Encoding.UTF8, "application/json"), name: "advertiserId");
+
+            var result = await _adveriseService.UpdateEntityFormFile(id, requestContent);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/Advertisements", query));
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+    private void OnFinish(EditContext editContext)
+    {
+        Console.WriteLine($"Success:{command}");
+    }
+
+    private void OnFinishFailed(EditContext editContext)
+    {
+        Console.WriteLine($"Failed:{command}");
+    }
+
+}

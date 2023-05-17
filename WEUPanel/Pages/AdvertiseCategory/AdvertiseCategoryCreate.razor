@@ -1,0 +1,120 @@
+﻿@page "/{culture}/AdvertiseCategoryCreate"
+
+@inject IAdvertiseCategory _advertiseCategory
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject IStringLocalizer<Resource> _localizer
+
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-12">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+
+
+        <div class="col-12">
+            <SingleSelect dataSource="categories"
+                          bindValue="@context.ParentId"
+                          label="@_localizer["دسته بندی‌ها"]"
+                          placeHolder="@_localizer["انتخاب کنید..."]"
+                          OnSetSelected="OnSetSelected" />
+        </div>
+        <div class="col-12">
+
+            <TextArea @bind-Value="@context.Description" Placeholder="@_localizer["توضیحات"]" />
+
+        </div>
+
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    [Parameter]
+    public bool shouldRender{ get; set; }
+    public List<AdvertiseCategoryModels.GetCatNameDto> cats= new();
+    AdvertiseCategoryModels.CreateAdvertiseCategory command = new AdvertiseCategoryModels.CreateAdvertiseCategory();
+    public RestEception errorMessage = new RestEception();
+    public bool error = false;
+    #region Single Select
+    List<DataType> categories = new List<DataType>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cats = await _advertiseCategory.GetAll();
+        foreach (var item in cats)
+        {
+            categories.Add(new DataType { key = item.Name, value = item.Id });
+        }
+    }
+    protected async Task Update()
+    {
+        if (shouldRender)
+        {
+            await OnInitializedAsync();
+        }
+    }
+    protected async Task OnSetSelected(int selected)
+    {
+        command.ParentId = selected;
+    }
+    #endregion
+
+    private async Task Create()
+    {
+        try
+        {
+            var result = await _advertiseCategory.AddEntity(command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+
+                    });
+                command = new AdvertiseCategoryModels.CreateAdvertiseCategory();
+                await StateChangeAfterAction.InvokeAsync(true);
+
+
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}

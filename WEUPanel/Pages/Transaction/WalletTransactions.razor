@@ -1,0 +1,172 @@
+﻿@page "/{culture}/WalletTransactions/{id:int}"
+@using AntDesign;
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@using WEUPanel.Pages.ReportAdsReason;
+@using WEUPanel.Pages.Transaction;
+@using WEUPanel.Services.Interfaces;
+@using WEUPanel.Wrappers;
+@inject ITransactionService _transactionService
+@inject NavigationManager _navigation
+@inject IMessageService _message
+@inject IStringLocalizer<Resource> _localizer
+@inject ConfirmService _confirmService
+@using WEUPanel.Shared.Common
+@inject State state
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/Transactions", query));})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+
+@if (dataTable != null && dataTable?.Count() != 0)
+{
+          <div class="col-md-12">
+
+
+            <Table Bordered=@true
+           Responsive="true"
+           Loading="_loading"
+           TItem="TransactionModels.Transaction"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                    <a>@context.Id</a>
+                </PropertyColumn>
+            <PropertyColumn Title="@_localizer["توضیحات"]" Property="c=>c.Description">
+                    <a>@context.Description</a>
+                </PropertyColumn>
+
+                <PropertyColumn Title="@_localizer["تاریخ ایجاد"]" Property="c=>c.CreationDate">
+                    <a>@context.CreationDate</a>
+                </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["مقدار"]" Property="c=>c.Amount">
+                    <a>@context.Amount</a>
+                </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["حذف شده؟"]" Property="c=>c.IsDeleted">
+                    <a>@context.IsDeleted</a>
+                </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["متعلق به کیف پول"]" Property="c=>c.Wallet.Name">
+                    <a>@context.Wallet.Name</a>
+                </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نوع تراکنش"]" Property="c=>c.TransactionType.Name">
+                    <a>@context.TransactionType.Name</a>
+                </PropertyColumn>
+
+
+            </Table>
+
+
+
+            <br />
+
+            <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                    <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@reportReason.TotalPages
+                           totalRecords=@reportReason.TotalRecords
+                           nextPage=@reportReason.NextPage
+                           previousPage=@reportReason.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+                </div>
+            </div>
+
+            <br />
+        </div>
+   
+}
+else
+{
+    <Alert Message="دیتایی وجود ندارد!" Type="@AlertType.Info" />
+
+}
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+
+    ITable tableRef;
+    PagedResponse<IEnumerable<TransactionModels.Transaction>> reportReason;
+    IEnumerable<TransactionModels.Transaction> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    Dictionary<string, string> query;
+    protected override async Task OnInitializedAsync()
+    {
+        query = new Dictionary<string, string>
+        {
+                    { "page", state.SelectedPage }
+        };
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        reportReason = await _transactionService.GetAllByWalletId(id,_pageIndex, 10);
+        _loading = false;
+
+        dataTable = reportReason.Data;
+        _pageIndex = reportReason.PageNumber;
+        _pageSize = reportReason.PageSize;
+        _total = reportReason.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        reportReason = await _transactionService.GetAllByWalletId(id,(_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = reportReason.Data;
+        _pageIndex = reportReason.PageNumber;
+        _pageSize = reportReason.PageSize;
+        _total = reportReason.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        reportReason = await _transactionService.GetAllByWalletId(id,(_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = reportReason.Data;
+        _pageIndex = reportReason.PageNumber;
+        _pageSize = reportReason.PageSize;
+        _total = reportReason.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        reportReason = await _transactionService.GetAllByWalletId(id,page, _pageSize);
+        _loading = false;
+        dataTable = reportReason.Data;
+        _pageIndex = reportReason.PageNumber;
+        _pageSize = reportReason.PageSize;
+        _total = reportReason.TotalRecords;
+        ChangeUrl();
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+}
+
+

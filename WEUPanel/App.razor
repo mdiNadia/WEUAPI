@@ -1,0 +1,116 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+@inject ILocalStorageService _localStorage
+@inject IJSRuntime _js
+@inject IAuthService _authService
+@inject HttpClient http
+@inject NavigationManager _navigation
+
+<style>
+    body{
+        background: #eff7f7;
+    }
+    .top-row{
+        background: #30313f!important;
+    }
+
+        .sidebar{
+        background: white!important;
+        }
+    .top-row a, .top-row .btn-link {
+        margin-right: 1.5rem;
+
+    }
+
+    .ant-modal-header {
+        display: flex;
+        justify-content: end;
+    }
+
+    .ant-form-item-control-input-content{
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    
+    }
+        .ant-form input[type='file']{
+        display: block;
+   
+        padding: 10px;
+        border: 1px #eff7f7 solid;
+    }
+
+    .ant-btn:hover, .ant-btn:focus{
+        color: #fff;
+        border-color: #fff;
+    }
+
+
+
+</style>
+
+@if (culture == "fa" || culture == "ar")
+{
+        <style>
+            .ant-table.ant-table-bordered > .ant-table-container > .ant-table-content > table > thead > tr > th,
+            .ant-table.ant-table-bordered > .ant-table-container > .ant-table-content > table > tbody > tr > td {
+                text-align: right !important;
+            }
+        .ant-modal-close{
+            right:0;
+        }
+
+        .ant-notification-notice-close{
+            left:22px!important;
+            right:auto;
+        }
+
+        .ant-form-item-label{
+            text-align:right!important;
+        }
+
+        
+        </style>
+}
+else
+{
+        <style>
+            .ant-table.ant-table-bordered > .ant-table-container > .ant-table-content > table > thead > tr > th,
+            .ant-table.ant-table-bordered > .ant-table-container > .ant-table-content > table > tbody > tr > td {
+                text-align: left !important;
+            }
+
+        .ant-form-item-label {
+            text-align: left;
+        }
+
+        .ant-modal-close {
+            left: 0;
+        }
+
+        </style>
+}
+<AntContainer />
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+
+        <CascadingAuthenticationState>
+            <PageTitle>Not found</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <NotFoundPage />
+            </LayoutView>
+        </CascadingAuthenticationState>
+    </NotFound>
+</Router>
+
+@code{
+    string culture = CultureInfo.CurrentCulture.DisplayName;
+}
+
+
+
+

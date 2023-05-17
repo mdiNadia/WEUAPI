@@ -1,0 +1,42 @@
+﻿@page "/{culture}/CommentDetails/{id:int}"
+@inject ICommentService _commentService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@if (command != null)
+{
+    <div class="row">
+        <div class="col-md-6">
+           
+            <p>
+               @command.Message
+            </p>
+        </div>
+   
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+    protected CommentModels.Comment command = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _commentService.GetById(id);
+        command = model.Data.Adapt<CommentModels.Comment>();
+
+        CommentModels.EditComment update = new();
+        update.Id = id;
+        update.IsVisite = true;
+        update.IsActive = model.Data.IsActive;
+        var result = await _commentService.UpdateEntity(id, update);
+  
+
+
+    }
+
+}

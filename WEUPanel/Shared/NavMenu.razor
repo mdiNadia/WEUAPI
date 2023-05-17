@@ -1,0 +1,84 @@
+﻿@inject IStringLocalizer<Resource> _localizer
+@inject IAppSettingService _appSettingService
+<style>
+    nav.flex-column {
+        background: #fff;
+    }
+</style>
+<div class=" ps-3 navbar navbar-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">WEUPanel</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="@("/"+culture)">
+                <Icon Type="home" Theme="fill" Class="p-1" />
+                @_localizer["داشبورد"]
+            </NavLink>
+        </div>
+
+        <DropDownMenu Children="@(new Dictionary<string, string>(){
+             {_localizer["اطلاعات برنامه"],culture+"/AppSetting"}
+            ,{_localizer["تنظیمات زبان"],culture+"/Languages?page=1"}
+            ,{_localizer["امتیازها"],culture+"/ProfileScores?page=1"}
+            ,{_localizer["کشورها"],culture+"/Countries?page=1"}
+            ,{_localizer["نوع فایل"],culture+"/FileTypes?page=1"}
+    
+             })" Parent=@_localizer["تنظیمات برنامه"] />
+        <DropDownMenu Children="@(new Dictionary<string, string>(){
+            {_localizer["استان‌ها"],culture+"/Provinces?page=1"}
+            ,{_localizer["شهرها"],culture+"/Cities?page=1"}
+            ,{_localizer["محله‌ها"],culture+"/Neighborhoods?page=1"}
+             })" Parent=@_localizer["تنظیمات موقعیت"] />
+        <DropDownMenu Children="@(new Dictionary<string, string>(){{_localizer["کاربران"],culture +"/Users?page=1"},{_localizer["افزودن کاربر"],culture+"/UserCreate"},{_localizer["افزودن نقش"],culture +"/RoleCreate?page=1"},{_localizer["نقش‌ها"],culture +"/Roles?page=1"}})" Parent=@_localizer["کاربر"] />
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="@(culture + "/AdvertiseCategories?page=1")">
+                <Icon Type="home" Theme="fill" Class="p-1" />
+                @_localizer["دسته‌بندی‌های آگهی"]
+            </NavLink>
+        </div>
+        <DropDownMenu Children="@(new Dictionary<string, string>(){{_localizer["آگهی‌ها"],culture + "/Advertisements?page=1"},{_localizer["افزودن آگهی"],culture + "/AdvertisementCreate"},{_localizer["آگهی‌ تاییدشده"],culture + "/ConfirmedResults"},{_localizer["آگهی‌ ردشده"],culture + "/RejectedResults"}})" Parent=@_localizer["آگهی"] />
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="@(culture + "/Comments?page=1")">
+                <Icon Type="home" Theme="fill" Class="p-1" />
+                @_localizer["پیام‌ها"]
+            </NavLink>
+        </div>
+        <DropDownMenu Children="@(new Dictionary<string, string>()
+             {
+             {_localizer["دلایل ریپورت"],culture+"/ReportReasons?page=1"}
+            ,{_localizer["کاربران"],culture+"/ReportedUsers?page=1"}
+             ,{_localizer["آگهی‌ها"],culture+"/ReportedAds?page=1"}
+              ,{_localizer["لیست سیاه"],culture+"/BlackList?page=1"}
+             })" Parent=@_localizer["مدیریت ریپورت"] />
+        <DropDownMenu Children="@(new Dictionary<string, string>()
+             {
+             {_localizer["تراکنش‌ها"],culture+"/Transactions?page=1"}
+            ,{_localizer["کیف پول‌ها"],culture+"/Wallets?page=1"}
+             ,{_localizer["افزودن کیف پول"],culture+"/WalletCreate"}
+             })" Parent=@_localizer["کیف پول"] />
+
+
+    </nav>
+
+</div>
+
+@code {
+
+    string culture = CultureInfo.CurrentCulture.DisplayName;
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+ 
+}

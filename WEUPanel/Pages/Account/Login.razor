@@ -1,0 +1,85 @@
+﻿@page "/login"
+@inject IAuthService _authService
+@inject NavigationManager _navigation
+@inject IStringLocalizer<Resource> _localizer
+
+<style>
+    .top-row.px-4 {
+        display: none;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    .login-register-box {
+       
+        text-align: center;
+        margin: 20px auto;
+        background: #fff;
+        padding: 15px;
+        border-radius: 5px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-4 col-sm-12 login-register-box" dir="rtl">
+    <div class="text-center">
+        <h2>
+
+            ورود به سیستم
+        </h2>
+      @*  <CultureSelector />*@
+    </div>
+            @if (showErrors)
+        {
+            <div class="alert alert-danger" role="alert">
+                <p>@error</p>
+            </div>
+        }
+    <Form Model="@model"
+          LabelColSpan="8"
+          WrapperColSpan="16">
+        <FormItem Label="@_localizer["نام کاربری"]">
+            <Input @bind-Value="@context.username" />
+        </FormItem>
+
+        <FormItem Label="@_localizer["رمزعبور"]">
+            <InputPassword @bind-Value="@context.password" />
+        </FormItem>
+
+        <FormItem WrapperColOffset="8" WrapperColSpan="16">
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="HandleLogin">
+                @_localizer["ورود"]
+            </Button>
+        </FormItem>
+    </Form>
+</div>
+
+
+</div>
+
+
+@code {
+    private LoginModel model = new LoginModel();
+    private bool showErrors;
+    private string error = "";
+
+    private async Task HandleLogin()
+    {
+        showErrors = false;
+
+        var result = await _authService.Login(model);
+        var culture = CultureInfo.CurrentCulture;
+        if (result.IsAuthenticated)
+        {
+            _navigation.NavigateTo("/" + culture.DisplayName);
+        }
+        else
+        {
+            error = "نام کاربری یا رمزعبور صحیح نمی‌باشد";
+            showErrors = true;
+        }
+    }
+
+}

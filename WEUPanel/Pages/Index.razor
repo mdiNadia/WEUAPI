@@ -1,0 +1,64 @@
+﻿@page "/{culture}"
+@inject IStringLocalizer<Resource> _localizer
+@inject IUserService _userService
+@inject HttpClient Http
+<div class="site-statistic-demo-card">
+    <div class="row">
+        <div class="col-md-3 col-sm-6 mb-1">
+            <Card>
+                <Statistic Title="@_localizer["کاربران"]" Value="@usersCount" ValueStyle="color: #3f8600;">
+
+                </Statistic>
+            </Card>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-1">
+            <Card>
+                <Statistic Title="@_localizer["آگهی‌های تاییدشده"]" Value="9.3" ValueStyle="color: #959f01;">
+
+                </Statistic>
+            </Card>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-1">
+            <Card>
+                <Statistic Title="@_localizer["آگهی‌های در انتظار تایید"]" Value="9.3" ValueStyle="color: #3f8600;">
+
+                </Statistic>
+            </Card>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-1">
+            <Card>
+                <Statistic Title="@_localizer["تراکنش‌های ناموفق"]" Value="9.3" ValueStyle="color: #cf1322;">
+
+                </Statistic>
+            </Card>
+        </div>
+    </div>
+    <br/>
+
+</div>
+
+<style>
+    .site-statistic-demo-card {
+        padding: 30px;
+    }
+
+</style>
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    //#eff7f7 زمینه
+    //#30313f هدر
+    //دکمه های صفحه اول پنل
+    //#52e79cسبز
+    //#febd64زرد
+    //#7b6befبنفش
+    //#ff7575صورتی
+    public int usersCount;
+    protected override async Task OnInitializedAsync()
+    {
+        usersCount = await _userService.GetAllCount();
+   
+    }
+
+
+}

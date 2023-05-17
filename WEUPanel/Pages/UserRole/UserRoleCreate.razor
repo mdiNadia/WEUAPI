@@ -1,0 +1,103 @@
+﻿@*@page "/{culture}/UserCreate"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Pages.Account;
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+@inject IUserRoleService _userRoleService
+<div class="goback-btn">
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/users", query));})">@_localizer["بازگشت به عقب"]</Button>
+    <Button Danger OnClick="@(()=>{_navigation.NavigateTo(culture+"/");})">@_localizer["بازگشت به صفحه اصلی"]</Button>
+</div>
+<br />
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-6">
+            <FormItem Label="@_localizer["نام"]">
+                <Input @bind-Value="@context.Name" />
+            </FormItem>
+        </div>
+
+
+
+        <div class="col-12 m-1">
+          
+                <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Create">
+                @_localizer["ثبت"]
+                </Button>
+           
+
+        </div>
+
+    </div>
+
+
+</Form>
+
+
+
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    UserRoleModels.CreateRole command = new UserRoleModels.CreateRole();
+    public RestEception errorMessage = new RestEception();
+    Dictionary<string, string> query;
+    public List<GetNameAndIdString> userRoles = new();
+    List<DataTypeString> roles = new List<DataTypeString>();
+    protected override async Task OnInitializedAsync()
+    {
+        query = new Dictionary<string, string>
+        {
+                    { "page", state.SelectedPage }
+        };
+        userRoles = await _userRoleService.GetAll();
+        foreach (var item in userRoles)
+        {
+            roles.Add(new DataTypeString { key = item.Name, value = item.Name });
+        }
+    }
+    public bool error = false;
+    
+
+    private async Task Create()
+    {
+        try
+        {
+
+            var result = await _userRoleService.AddEntity(command);
+            var registerResult = JsonSerializer.Deserialize<RegisterResult>(await result.Content.ReadAsStringAsync(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (registerResult.statusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت افزوده شد!",
+
+                    });
+                _navigation.NavigateTo(QueryHelpers.AddQueryString(culture + "/users", query));
+
+            }
+            else
+            {
+                error = true;
+                string response = result.Content.ReadAsStringAsync().Result;
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}*@

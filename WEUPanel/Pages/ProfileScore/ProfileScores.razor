@@ -1,0 +1,233 @@
+﻿@page "/{culture}/ProfileScores"
+@using Microsoft.AspNetCore.WebUtilities;
+@using WEUPanel.Helpers.Pagination
+@inject IProfileScoreService _profileScoreService
+@inject NavigationManager _navigation
+@inject BaseRequestParameter _baseRequestParameter
+@inject IMessageService _message
+@inject ConfirmService _confirmService
+@inject IStringLocalizer<Resource> _localizer
+@inject ModalService _modalService
+@using WEUPanel.Shared.Common
+@inject State state
+
+        <div>
+            @if (_showEditForm)
+            {
+                <ProfileScoreEdit culture="@culture" id="@id" StateChangeAfterAction="StateChangeAfterAction" />
+        _showEditForm = false;
+            }
+            else
+            {
+                <ProfileScoreCreate culture="@culture" StateChangeAfterAction="StateChangeAfterAction" />
+            }
+
+        </div>
+
+        <br />
+@if (dataTable != null && dataTable?.Count()!=0)
+{
+    <div class="col-md-12">
+
+
+
+        <Table Bordered=@true
+           Responsive="true"
+           Loading="_loading"
+           TItem="ProfileScoreModels.ProfileScore"
+           DataSource="@dataTable"
+           HidePagination=@true
+           Total="@_total">
+            <PropertyColumn Title="@_localizer["شناسه"]" Property="c=>c.Id">
+                <a>@context.Id</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نمادک"]" Property="c=>c.IconName">
+                <a><Image Width="20" Src="@(_baseRequestParameter._Base_Images_Url + "/ProfileScore/"+ context.IconName)" /></a>
+            </PropertyColumn>
+
+            <PropertyColumn Title="@_localizer["نام"]" Property="c=>c.Name">
+                <a>@context.Name</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["امتیاز"]" Property="c=>c.Score">
+                <a>@context.Score</a>
+            </PropertyColumn>
+            <PropertyColumn Title="@_localizer["نوع پروفایل"]" Property="c=>c.ProfileType">
+                <a>@(source.SingleOrDefault(s => s.value == context.ProfileType).key)</a>
+            </PropertyColumn>
+            <ActionColumn Title="@_localizer["عملیات"]">
+                <Space Size=@("middle")>
+                    
+                        <Button Class="bg-warning small m-1" OnClick="()=>EditData(context.Id)">@_localizer["ویرایش"]</Button>
+             
+                        <Button Class="bg-danger small" OnClick="@(async ()=> { await ShowConfirm(ConfirmButtons.YesNo,context.Id); })">@_localizer["حذف"]</Button>
+
+                    
+                </Space>
+            </ActionColumn>
+        </Table>
+
+
+
+        <br />
+
+        <div class="d-flex justify-content-between">
+            <p>@_localizer["شماره صفحه"]: @_pageIndex | @_localizer["تعداد در هر صفحه"]: @_pageSize | @_localizer["کل اطلاعات"]: @_total</p>
+            <div class="prev-next-box">
+                <CustomePaging pageNumber=@_pageIndex
+                           pageSize=@_pageSize
+                           totalPages=@profileScores.TotalPages
+                           totalRecords=@profileScores.TotalRecords
+                           nextPage=@profileScores.NextPage
+                           previousPage=@profileScores.PreviousPage
+                           Spread="2"
+                           SelectedPage="@SelectedPage" />
+
+            </div>
+        </div>
+
+        <br />
+    </div>
+   
+}
+else
+{
+    <Alert Message="@_localizer["دیتایی وجود ندارد!"]" Type="@AlertType.Info" />
+
+  
+    }
+
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string page { get; set; }
+    public bool _showEditForm = false;
+    public int id;
+    protected async Task StateChangeAfterAction(bool value)
+    {
+        _showEditForm = false;
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    void EditData(int id)
+    {
+        this._showEditForm =true;
+        this.id = id;
+    }
+    ITable tableRef;
+    PagedResponse<IEnumerable<ProfileScoreModels.ProfileScore>> profileScores;
+    IEnumerable<ProfileScoreModels.ProfileScore> dataTable;
+    int _pageIndex = new();
+    int _pageSize = new();
+    int _total = new();
+    bool _loading = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navigation.ToAbsoluteUri(_navigation.Uri);
+        var querystrings = QueryHelpers.ParseQuery(uri.Query);
+        if (querystrings.TryGetValue("page", out var page))
+        {
+            _pageIndex = Convert.ToInt32(page);
+        };
+        _loading = true;
+        profileScores = await _profileScoreService.GetAllByPaging(_pageIndex,10);
+        _loading = false;
+
+        dataTable = profileScores.Data;
+        _pageIndex = profileScores.PageNumber;
+        _pageSize = profileScores.PageSize;
+        _total = profileScores.TotalRecords;
+        state.SetPage(_pageIndex.ToString());
+    }
+    private async Task nextPage()
+    {
+        _loading = true;
+        profileScores = await _profileScoreService.GetAllByPaging((_pageIndex + 1), _pageSize);
+        _loading = false;
+        dataTable = profileScores.Data;
+        _pageIndex = profileScores.PageNumber;
+        _pageSize = profileScores.PageSize;
+        _total = profileScores.TotalRecords;
+        ChangeUrl();
+
+    }
+    private async Task prevPage()
+    {
+        _loading = true;
+        profileScores = await _profileScoreService.GetAllByPaging((_pageIndex - 1), _pageSize);
+        _loading = false;
+        dataTable = profileScores.Data;
+        _pageIndex = profileScores.PageNumber;
+        _pageSize = profileScores.PageSize;
+        _total = profileScores.TotalRecords;
+        ChangeUrl();
+    }
+    private async Task SelectedPage(int page)
+    {
+        _loading = true;
+        profileScores = await _profileScoreService.GetAllByPaging(page, _pageSize);
+        _loading = false;
+        dataTable = profileScores.Data;
+        _pageIndex = profileScores.PageNumber;
+        _pageSize = profileScores.PageSize;
+        _total = profileScores.TotalRecords;
+        ChangeUrl();
+    }
+    public RestEception errorMessage = new RestEception();
+    protected async Task DeleteData(int id)
+    {
+
+        dataTable = dataTable.Where(c => c.Id != id);
+        _total = _total - 1;
+        var result = await _profileScoreService.RemoveEntity(id);
+        if (result.IsSuccessStatusCode)
+        {
+            if (!dataTable.Any())
+            {
+                await prevPage();
+                StateHasChanged();
+            }
+            await _message.Success($"با موفقیت حذف شد", 2);
+        }
+        else
+        {
+
+            string response = result.Content.ReadAsStringAsync().Result;
+            errorMessage =Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response);
+            _modalService.Error(new ConfirmOptions()
+                {
+                    Title = "حذف نشد",
+                    Content = errorMessage.error
+                });
+            dataTable = profileScores.Data;
+            _total = _total + 1;
+
+        }
+
+
+
+    }
+    private async Task ShowConfirm(ConfirmButtons confirmButtons, int id)
+    {
+        var content = "آیا از حذف این داده اطمینان دارید؟ عملیات حذف غیرقابل بازگشت می‌باشد!";
+        var title = "اخطارررر";
+        var confirmResult = await _confirmService.Show(content, title, confirmButtons);
+        if (confirmResult == ConfirmResult.Yes)
+            await DeleteData(id);
+    }
+    private void ChangeUrl()
+    {
+        string url = UriHelper.RemoveQueryStringByKey(_navigation.Uri, "page");
+        var query = new Dictionary<string, string> { { "page", _pageIndex.ToString() } };
+        _navigation.NavigateTo(QueryHelpers.AddQueryString(url, query));
+    }
+    List<DataType> source = new List<DataType>
+   {
+      new DataType { key = "شخصی", value = 0},
+      new DataType { key = "تجاری", value = 1}
+   };
+
+}
+
+

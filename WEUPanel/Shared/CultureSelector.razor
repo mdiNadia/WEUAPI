@@ -1,0 +1,34 @@
+﻿@using WEUPanel.Pages.Language
+@inject BaseRequestParameter _baseRequestParameter
+@inject ILanguageService _languageService
+<style>
+    .select-lang {
+        width: 40px;
+        background: #eff7f7;
+        width: 40px;
+        border: 1px solid #eff7f7;
+    }
+</style>
+<Dropdown Trigger="@(new Trigger[] { Trigger.Hover })">
+    <Overlay>
+        <Menu>
+            @foreach (var culture in cultures)
+            {
+                <MenuItem>
+                    <a @onclick="()=>{ChangeCulture(culture);}">
+
+                        <img Width="20" height="15" Src="@(_baseRequestParameter._Base_Images_Url + "/Language/"+ Languages.FirstOrDefault(c=>c.Id == culture.Name)?.Name)" />
+                        @*culture.Name*@
+                    </a>
+                </MenuItem>
+            }
+        </Menu>
+    </Overlay>
+    <ChildContent>
+        <a style="color:#fff;background-color:#30313f;padding:2px" class="ant-dropdown-link" @onclick:preventDefault>
+            <img Width="20" height="15" Src="@(_baseRequestParameter._Base_Images_Url + "/Language/"+ Languages.FirstOrDefault(c=>c.Id == CurrentCulture)?.Name)" />
+            @* @CurrentCulture*@ <Icon Type="down" />
+        </a>
+    </ChildContent>
+</Dropdown>
+

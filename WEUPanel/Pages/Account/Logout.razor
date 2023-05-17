@@ -1,0 +1,17 @@
+﻿@page "/logout"
+@inject IAuthService _authService
+@inject NavigationManager _navigation
+@inject IStringLocalizer<Resource> _localizer
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await _authService.Logout();
+
+        _navigation.NavigateTo("/");
+
+    }
+
+}

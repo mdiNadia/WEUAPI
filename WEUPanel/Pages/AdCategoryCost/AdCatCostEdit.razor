@@ -1,0 +1,83 @@
+﻿@page "/{culture}/AdCatCostEdit/{id:int}"
+@inject IAdCategoryCostService _adCategoryCostService
+@inject NavigationManager _navigation
+@inject NotificationService _notice
+@inject BaseRequestParameter _baseRequestParameter
+@inject IStringLocalizer<Resource> _localizer
+<Form Model="@command"
+      LabelColSpan="8"
+      WrapperColSpan="16">
+    <div class="row form-style">
+        @if (!string.IsNullOrEmpty(errorMessage.error))
+        {
+            <Alert Message="@errorMessage.error" Type="@AlertType.Error" />
+        }
+        <div class="col-6">
+            <FormItem Label="@_localizer["ارزش"]">
+                <Input @bind-Value="@context.Cost" />
+            </FormItem>
+        </div>
+
+        <div class="col-12 m-1">
+
+            <Button Type="@ButtonType.Primary" HtmlType="submit" OnClick="@Edit">
+                @_localizer["ثبت"]
+            </Button>
+
+
+        </div>
+
+    </div>
+
+
+</Form>
+@code {
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public int id { get; set; }
+
+    AdCategoryCostModels.EditAdcategoryCost command = new();
+
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    public RestEception errorMessage = new RestEception();
+
+    public bool error = false;
+    protected override async Task OnInitializedAsync()
+    {
+        var model = await _adCategoryCostService.GetById(id);
+        if (model.Succeeded)
+            command = model.Data.Adapt<AdCategoryCostModels.EditAdcategoryCost>();
+    }
+
+    private async Task Edit()
+    {
+        try
+        {
+            var result = await _adCategoryCostService.UpdateEntity(id, command);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                await _notice.Success(new NotificationConfig
+                    {
+                        Duration = 1.5,
+                        Message = "تبریک",
+                        Description = "با موفقیت ویرایش شد!",
+
+                    });
+                command = new ();
+                await StateChangeAfterAction.InvokeAsync();
+            }
+            else
+            {
+                error = true;
+                var response = result.Content.ReadAsStringAsync();
+                errorMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<RestEception>(response.Result);
+            }
+        }
+        catch (Exception err)
+        {
+            throw err;
+        }
+    }
+}
