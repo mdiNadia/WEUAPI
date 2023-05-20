@@ -1,4 +1,6 @@
-﻿using Application.Dtos.Wallet;
+﻿using Application.Dtos.Order;
+using Application.Dtos.Wallet;
+using Application.Features.Order.Queries;
 using Application.Features.Transaction.Commands;
 using Application.Features.Value.Commands;
 using Application.Features.View.Commands;
@@ -9,6 +11,7 @@ using WebApi.Filter;
 using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace WebApi.Controllers.v1
 {
@@ -112,6 +115,16 @@ namespace WebApi.Controllers.v1
         public async Task<IActionResult> ChargeValue(ChargeValue command)
         {
             return Ok(await Mediator.Send(command));
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> UserOrders([FromQuery] PaginationFilter filter)
+        {
+            var route = Request.Path.Value;
+            var pagedData = await Mediator.Send(new GetAllUserOrders(filter));
+            var totalRecords = await Mediator.Send(new GetAllUserOrdersCount());
+            var pagedReponse = PaginationHelper.CreatePagedReponse<GetAllUserOrdersDto>(pagedData, filter, totalRecords, _uriService, route);
+            return Ok(pagedReponse);
         }
     }
 }

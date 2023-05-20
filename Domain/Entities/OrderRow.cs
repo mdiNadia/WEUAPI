@@ -17,8 +17,8 @@ namespace Domain.Entities
         public int TargetId { get; set; }
         public char sign { get; set; }
        
-        public int OrderId { get; set; }
-        public Order Order { get; set; }
+        public int OrderId { get; set; } 
+        public Order Order { get; set; } 
         //1- کیف پولی - wallet
         //2- خرید محصول - product
         public OrderType OrderType { get; set; }

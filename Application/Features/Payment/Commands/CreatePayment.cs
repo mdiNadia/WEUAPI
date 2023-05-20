@@ -1,6 +1,7 @@
 ﻿using Application.Errors;
 using Application.Features.Transaction.Commands;
 using Application.Interfaces;
+using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -22,6 +23,7 @@ namespace Application.Features.Payment.Commands
             }
             public async Task<int> Handle(Payment command, CancellationToken cancellationToken)
             {
+                
                 #region ثبت تراکنش بعد از پرداخت
                 CreateTransaction transaction = new CreateTransaction();
                 transaction.TransactionType = Domain.Enums.WalletType.fair;
@@ -31,7 +33,6 @@ namespace Application.Features.Payment.Commands
                 transaction.Coin = 1;
                 await _mediator.Send(transaction);
                 #endregion
-
                 try
                 {
                     await _unitOfWork.CompleteAsync();
