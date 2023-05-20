@@ -43,23 +43,24 @@ namespace Application.Features.Value.Commands
                 {
                     try
                     {
+                        #region Users Info
                         var observer = await _unitOfWork.Profiles.GetQueryList().SingleOrDefaultAsync(x => x.Username == _userAccessor.GetCurrentUserNameAsync());
                         if (observer == null)
                             throw new RestException(HttpStatusCode.NotFound, "Not found User");
                         var observerWallet = await _unitOfWork.Wallets.GetQueryList().SingleOrDefaultAsync(x => x.ProfileId == observer.Id);
                         if (observerWallet == null)
                             throw new RestException(HttpStatusCode.NotFound, "Not found wallet");
+                        #endregion 
                         #region اضافه کردن ارزش به کیف پول
                         observerWallet.Value = observerWallet.Value + command.ValuePerVisit;
                         _unitOfWork.Wallets.Update(observerWallet);
                         #endregion
                         #region ایجاد یک سفارش
                         CreateOrderRow order = new CreateOrderRow();
-                        order.TransactionType = Domain.Enums.WalletType.fair;
+                        order.OrderType = Domain.Enums.OrderType.fair;
                         order.Name = command.TargetName;//Advertise Title
                         order.Description = $"{command.TargetName} بابت دیدن آگهی";
                         order.TargetId = command.TargetId; //Advertise Id
-                        order.OrderType = Domain.Enums.OrderType.Wallet;
                         order.Sign = '+';
                         await _mediator.Send(order);
                         #endregion

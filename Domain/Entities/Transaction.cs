@@ -11,6 +11,8 @@ namespace Domain.Entities
         //رابطه
         public int WalletId { get; set; }
         public Wallet Wallet { get; set; }
+        public int OrderId { get; set; } = 0;
+        public Order Order { get; set; } 
         public int TransactionTypeId { get; set; }
         public TransactionType TransactionType { get; set; }
         public int TransactionStatusId { get; set; }

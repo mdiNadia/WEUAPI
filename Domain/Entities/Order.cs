@@ -11,9 +11,11 @@ namespace Domain.Entities
     {
         public string OrderNum { get; set; }
         public bool IsPaid { get; set; }
+
         public ICollection<OrderRow> OrderRows { get; set; }
         public int ProfileId { get;set; }
         public Profile Profile { get; set; }
+        public ICollection<Transaction> Transactions { get; set; }
 
     }
 }

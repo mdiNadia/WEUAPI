@@ -16,7 +16,7 @@ namespace Application.Features.Transaction.Commands
     {
         public decimal Amount { get; set; }
         public string Description { get; set; }
-        public Domain.Enums.WalletType TransactionType { get; set; }
+        public Domain.Enums.TransactionType TransactionType { get; set; }
         public Domain.Enums.OrderType OrderType { get; set; } //wallet OR shopping
         public class StartTransactionHandler : IRequestHandler<StartTransaction, int>
         {
@@ -44,13 +44,12 @@ namespace Application.Features.Transaction.Commands
                     {
                         #region افزودن یک سفارش
                         CreateOrderRow order = new CreateOrderRow();
-                        order.TransactionType = command.TransactionType;
+                        order.OrderType = command.OrderType;
                         order.Name = target.Username;
                         order.TargetId = target.Id;
                         order.Description = command.Description;
-                        order.OrderType = command.OrderType;
                         //اگر سفارش برداشت از کیف پول بود
-                        if (command.TransactionType == Domain.Enums.WalletType.withdraw)
+                        if (command.TransactionType == Domain.Enums.TransactionType.withdraw)
                         {
                             //برداشت سکه‌ها از کیف پول
                             order.Sign = '-';

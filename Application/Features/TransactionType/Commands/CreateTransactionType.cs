@@ -6,7 +6,7 @@ namespace Application.Features.Transaction.Commands
     public class CreateTransactionType : IRequest<int>
     {
         public int TransactionId { get; set; }
-        public Domain.Enums.WalletType TransactionTypeEnum { get; set; }
+        public Domain.Enums.TransactionType TransactionTypeEnum { get; set; }
 
         public class CreateTransactionTypeHandler : IRequestHandler<CreateTransactionType, int>
         {

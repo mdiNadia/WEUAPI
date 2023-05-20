@@ -4,6 +4,7 @@ using Application.Features.Transaction.Commands;
 using Application.Interfaces;
 using Application.Services.FileStorage;
 using Application.Services.UserAccessor;
+using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -25,7 +26,7 @@ namespace Application.Features.Value.Commands
             private readonly IUserAccessor _userAccessor;
             private readonly IUnitOfWork _unitOfWork;
 
-            public TransferValueHandler(IMediator mediator,IUserAccessor userAccessor, IUnitOfWork unitOfWork)
+            public TransferValueHandler(IMediator mediator, IUserAccessor userAccessor, IUnitOfWork unitOfWork)
             {
                 this._mediator = mediator;
                 this._userAccessor = userAccessor;
@@ -35,81 +36,93 @@ namespace Application.Features.Value.Commands
 
             public async Task<bool> Handle(TransferValue command, CancellationToken cancellationToken)
             {
-                var observer = await _unitOfWork.Profiles.GetQueryList()
-                    .SingleOrDefaultAsync(x => x.Username == _userAccessor.GetCurrentUserNameAsync());
-                if (observer == null)
-                    throw new RestException(HttpStatusCode.NotFound, "Not found User 1");
-
-                var target = await _unitOfWork.Users.GetQueryList().SingleOrDefaultAsync(x => x.PhoneNumber == command.TargetNumber);
-                if (target == null)
-                    throw new RestException(HttpStatusCode.NotFound, "Not found User 2");
-                var targetProfile = await _unitOfWork.Profiles.GetQueryList().SingleOrDefaultAsync(x=>x.Username == target.UserName);
-                if (targetProfile == null)
-                    throw new RestException(HttpStatusCode.NotFound, "Not found User 2 Profile");
-                var observerWallet = await _unitOfWork.Wallets.GetQueryList().SingleOrDefaultAsync(x=>x.ProfileId == observer.Id);
-                if (targetProfile == null)
-                    throw new RestException(HttpStatusCode.NotFound, "Not found User 1 Wallet");
-                var targetWallet = await _unitOfWork.Wallets.GetQueryList().SingleOrDefaultAsync(x => x.ProfileId == targetProfile.Id);
-                if (targetProfile == null)
-                    throw new RestException(HttpStatusCode.NotFound, "Not found User 2 Wallet");
-
-                var TransferValue = new Domain.Entities.TransferValueHistory
+                using (var dbContextTransaction = _unitOfWork.BeginTransaction())
                 {
-                    Observer = observer,
-                    Target = targetProfile,
-                };
-                TransferValue.CreationDate = DateTime.Now;
-                _unitOfWork.TransferValueHistories.Insert(TransferValue);
+                    try
+                    {
+                        #region Users Info
+                        var observer = await _unitOfWork.Profiles.GetQueryList()
+                  .SingleOrDefaultAsync(x => x.Username == _userAccessor.GetCurrentUserNameAsync());
+                        if (observer == null)
+                            throw new RestException(HttpStatusCode.NotFound, "Not found User 1");
 
-                var observeUserNum = await _unitOfWork.Users.GetQueryList().SingleAsync(c=>c.UserName == _userAccessor.GetCurrentUserNameAsync()) ;
-                if (observeUserNum.PhoneNumber == command.TargetNumber)
-                    throw new RestException(HttpStatusCode.NotFound, "You can not transfer value to yourself");
-                if (observerWallet.Value < command.Value)
-                    throw new RestException(HttpStatusCode.NotFound, "You have not enough value to transfer");
+                        var target = await _unitOfWork.Users.GetQueryList().SingleOrDefaultAsync(x => x.PhoneNumber == command.TargetNumber);
+                        if (target == null)
+                            throw new RestException(HttpStatusCode.NotFound, "Not found User 2");
+                        var targetProfile = await _unitOfWork.Profiles.GetQueryList().SingleOrDefaultAsync(x => x.Username == target.UserName);
+                        if (targetProfile == null)
+                            throw new RestException(HttpStatusCode.NotFound, "Not found User 2 Profile");
+                        var observerWallet = await _unitOfWork.Wallets.GetQueryList().SingleOrDefaultAsync(x => x.ProfileId == observer.Id);
+                        if (targetProfile == null)
+                            throw new RestException(HttpStatusCode.NotFound, "Not found User 1 Wallet");
+                        var targetWallet = await _unitOfWork.Wallets.GetQueryList().SingleOrDefaultAsync(x => x.ProfileId == targetProfile.Id);
+                        if (targetProfile == null)
+                            throw new RestException(HttpStatusCode.NotFound, "Not found User 2 Wallet");
+                        #endregion
 
-                #region کم کردن مقدار انتقال از کیف پول انتقال‌دهنده
-                observerWallet.Value = observerWallet.Value - command.Value;
-                _unitOfWork.Wallets.Update(observerWallet);
-                #endregion
+                        #region ثبت انتقال در دیتابیس
+                        var TransferValue = new Domain.Entities.TransferValueHistory
+                        {
+                            Observer = observer,
+                            Target = targetProfile,
+                        };
+                        TransferValue.CreationDate = DateTime.Now;
+                        _unitOfWork.TransferValueHistories.Insert(TransferValue);
+                        #endregion
+                        #region Exception Handling
+                        var observeUserNum = await _unitOfWork.Users.GetQueryList().SingleAsync(c => c.UserName == _userAccessor.GetCurrentUserNameAsync());
+                        if (observeUserNum.PhoneNumber == command.TargetNumber)
+                            throw new RestException(HttpStatusCode.NotFound, "You can not transfer value to yourself");
+                        if (observerWallet.Value < command.Value)
+                            throw new RestException(HttpStatusCode.NotFound, "You have not enough value to transfer");
 
-                #region ایجاد سفارش برای انتقال‌دهنده
-                CreateOrderRow observerOrder = new CreateOrderRow();
-                observerOrder.TransactionType = Domain.Enums.WalletType.transfer;
-                observerOrder.Description = $"بابت انتقال آگهی";
-                observerOrder.OrderType = Domain.Enums.OrderType.Wallet;
-                observerOrder.TargetId = targetProfile.Id;
-                observerOrder.Sign = '-';
-                //طرفی که بهش انتقال میدیم
-                observerOrder.Name = targetProfile.Username;
-                await _mediator.Send(observerOrder);
-                #endregion
+                        #endregion
 
-
-                #region اضافه کردن مقدار انتقال به کیف پول هدف
-                targetWallet.Value = targetWallet.Value + command.Value;
-                _unitOfWork.Wallets.Update(observerWallet);
-                #endregion
-
-                #region ایجاد سفارش برای کاربر هدف
-                CreateOrderRow targetOrder = new CreateOrderRow();
-                targetOrder.TransactionType = Domain.Enums.WalletType.transfer;
-                targetOrder.Description = $"بابت انتقال آگهی";
-                targetOrder.OrderType = Domain.Enums.OrderType.Wallet;
-                targetOrder.TargetId = observer.Id; // observer ID
-                targetOrder.Sign = '+';
-                //طرفی که بهش انتقال داده شده
-                targetOrder.Name = observer.Username; // observer userName
-                await _mediator.Send(targetOrder);
-                #endregion
+                        #region کم کردن مقدار انتقال از کیف پول انتقال‌دهنده
+                        observerWallet.Value = observerWallet.Value - command.Value;
+                        _unitOfWork.Wallets.Update(observerWallet);
+                        #endregion
+                        #region ایجاد سفارش برای انتقال‌دهنده
+                        CreateOrderRow observerOrder = new CreateOrderRow();
+                        observerOrder.OrderType = Domain.Enums.OrderType.transfer;
+                        observerOrder.Description = $"بابت انتقال آگهی";
+                        observerOrder.TargetId = targetProfile.Id;
+                        observerOrder.Sign = '-';
+                        //طرفی که بهش انتقال میدیم
+                        observerOrder.Name = targetProfile.Username;
+                        await _mediator.Send(observerOrder);
+                        #endregion
 
 
+                        #region اضافه کردن مقدار انتقال به کیف پول هدف
+                        targetWallet.Value = targetWallet.Value + command.Value;
+                        _unitOfWork.Wallets.Update(observerWallet);
+                        #endregion
+                        #region ایجاد سفارش برای کاربر هدف
+                        CreateOrderRow targetOrder = new CreateOrderRow();
+                        targetOrder.OrderType = Domain.Enums.OrderType.transfer;
+                        targetOrder.Description = $"بابت انتقال آگهی";
+                        targetOrder.TargetId = observer.Id; // observer ID
+                        targetOrder.Sign = '+';
+                        //طرفی که بهش انتقال داده شده
+                        targetOrder.Name = observer.Username; // observer userName
+                        await _mediator.Send(targetOrder);
+                        #endregion
 
-                try
-                {
-                    await _unitOfWork.CompleteAsync();
-                    return true;
+                        await _unitOfWork.CompleteAsync();
+                        dbContextTransaction.Commit();
+                        return true;
+
+
+                    }
+                    catch (Exception)
+                    {
+
+                        dbContextTransaction.Rollback();
+                        throw new Exception("خطا در ذخیره اطلاعات!");
+                    }
+
                 }
-                catch (Exception err) { throw new Exception("خطا در ذخیره اطلاعات!"); }
             }
         }
     }

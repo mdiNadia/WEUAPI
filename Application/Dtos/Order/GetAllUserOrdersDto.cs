@@ -12,7 +12,7 @@ namespace Application.Dtos.Order
         public string Name { get; set; }
         public string Description { get; set; }
         public char sign { get; set; }
-        public Domain.Enums.WalletType TransactionType { get; set; }
+        public Domain.Enums.OrderType OrderType { get; set; }
         public DateTime CreationDate { get; set; }
 
     }

@@ -11,7 +11,7 @@ namespace Application.Builders
             builder.HasKey(x => x.Id);
             builder.HasOne<TransactionType>(x => x.TransactionType).WithOne(x => x.Transaction).HasForeignKey<TransactionType>(x => x.TransactionId);
             builder.HasOne<TransactionStatus>(x => x.TransactionStatus).WithOne(x => x.Transaction).HasForeignKey<TransactionStatus>(x => x.TransactionId);
-
+            builder.HasOne(x=>x.Order).WithMany(x=>x.Transactions).HasForeignKey(x=>x.OrderId).OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

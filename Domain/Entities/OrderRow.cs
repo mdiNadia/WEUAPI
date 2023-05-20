@@ -16,18 +16,13 @@ namespace Domain.Entities
         //آیدی محصول یا آگهی که باعث ایجاد این ردیف شده 
         public int TargetId { get; set; }
         public char sign { get; set; }
-       
         public int OrderId { get; set; } 
-        public Order Order { get; set; } 
-        //1- کیف پولی - wallet
-        //2- خرید محصول - product
-        public OrderType OrderType { get; set; }
+        public Order Order { get; set; }
         //1- شارژ کیف پول با سکه
         //2- گرفتن سکه از کیف پول
         //3- برداشت سکه از کیف پول
         //4- انتقال سکه
-        public Domain.Enums.WalletType TransactionType { get; set; }
-
-
+        //5- shopping
+        public OrderType OrderType { get; set; }
     }
 }

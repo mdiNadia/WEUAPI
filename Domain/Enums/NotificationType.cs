@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Domain.Enums
 {
-
-    public enum TransactionStatus
+    public enum NotificationType
     {
-        Success = 0,
-        Faild = 1
+        app = 0,
+        following = 1,
+        like = 2,
     }
 }

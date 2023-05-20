@@ -23,7 +23,7 @@ namespace Application.Features.Order.Commands
         public int TargetId { get; set; }
         public char Sign { get; set; }
         public OrderType OrderType { get; set; }
-        public Domain.Enums.WalletType TransactionType { get; set; }
+
         public class CreateOrderRowHandler : IRequestHandler<CreateOrderRow, int>
         {
             private readonly IUserAccessor _userAccessor;
@@ -63,7 +63,6 @@ namespace Application.Features.Order.Commands
                 orderItem.Name = command.Name;
                 orderItem.Description = command.Description;
                 orderItem.OrderType = command.OrderType;
-                orderItem.TransactionType = command.TransactionType;
                 orderItem.sign = command.Sign;
                 _unitOfWork.OrderRows.Insert(orderItem);
                 try

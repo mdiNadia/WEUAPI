@@ -23,16 +23,7 @@ namespace Application.Features.Payment.Commands
             }
             public async Task<int> Handle(Payment command, CancellationToken cancellationToken)
             {
-                
-                #region ثبت تراکنش بعد از پرداخت
-                CreateTransaction transaction = new CreateTransaction();
-                transaction.TransactionType = Domain.Enums.WalletType.fair;
-                transaction.Description = $"";
-                transaction.Sign = '+';
-                transaction.WalletId = 0;
-                transaction.Coin = 1;
-                await _mediator.Send(transaction);
-                #endregion
+
                 try
                 {
                     await _unitOfWork.CompleteAsync();

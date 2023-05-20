@@ -46,7 +46,7 @@ namespace Application.Features.Order.Queries
                         Description = c.Description,
                         Name = c.Name,
                         sign = c.sign,
-                        TransactionType = c.TransactionType,
+                        OrderType = c.OrderType,
                     }).ToListAsync();
                 if (userOrderRows == null)
                 {

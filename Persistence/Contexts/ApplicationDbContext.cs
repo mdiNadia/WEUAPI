@@ -82,7 +82,7 @@ namespace Persistence.Contexts
             builder.ApplyConfiguration<Advertising>(new AdvertisingBuilder());
             builder.ApplyConfiguration<Attachment>(new AttachmentBuilder());
             builder.ApplyConfiguration<Comment>(new CommentBuilder());
-            builder.ApplyConfiguration<Domain.Entities.Message>(new Application.Builders.MessageBuilder());
+            builder.ApplyConfiguration<Message>(new MessageBuilder());
             builder.ApplyConfiguration<Wallet>(new WalletBuilder());
             builder.ApplyConfiguration<Transaction>(new TransactionBuilder());
             builder.ApplyConfiguration<UserFollowing>(new UserFollowingBuilder());
@@ -106,6 +106,8 @@ namespace Persistence.Contexts
             builder.ApplyConfiguration<Favorite>(new FavoriteBuilder());
             builder.ApplyConfiguration<LikeComment>(new LinkeCommentBuilder());
             builder.ApplyConfiguration<RejectedResultAttachment>(new RejectedResultAttachmentBuilder());
+            builder.ApplyConfiguration<Order>(new OrderBuilder());
+
 
             builder.ApplyConfiguration<TransferValueHistory>(new TransferValueHistoryBuilder());
             base.OnModelCreating(builder);
