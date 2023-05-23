@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Common;
-using Application.Dtos.Wallet;
 using Application.Errors;
 using Application.Interfaces;
 

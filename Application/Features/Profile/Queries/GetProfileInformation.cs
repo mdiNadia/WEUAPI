@@ -2,9 +2,9 @@
 using Application.Dtos.Common;
 using Application.Dtos.ConfirmedResult;
 using Application.Dtos.Profile;
-using Application.Dtos.Wallet;
 using Application.Errors;
 using Application.ExtensionMethods;
+using Application.Features.Wallet.Queries;
 using Application.Interfaces;
 using Application.Services.UserAccessor;
 using MediatR;

@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Order;
-using Application.Dtos.Wallet;
 using Application.Features.Order.Queries;
 using Application.Features.Transaction.Commands;
 using Application.Features.Value.Commands;

@@ -52,7 +52,7 @@ namespace Persistence.Contexts
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<Province> Provinces { get; set; }
         public DbSet<City> Cities { get; set; }
-      
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<TransferValueHistory> TransferValueHistories { get; set; }
         public DbSet<AdCategoryCost> AdCategoryCosts { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }
@@ -107,9 +107,8 @@ namespace Persistence.Contexts
             builder.ApplyConfiguration<LikeComment>(new LinkeCommentBuilder());
             builder.ApplyConfiguration<RejectedResultAttachment>(new RejectedResultAttachmentBuilder());
             builder.ApplyConfiguration<Order>(new OrderBuilder());
-
-
             builder.ApplyConfiguration<TransferValueHistory>(new TransferValueHistoryBuilder());
+            builder.ApplyConfiguration<Notification>(new NotificationBuilder());
             base.OnModelCreating(builder);
         }
         Task IApplicationDbContext.SaveChangesAsync()

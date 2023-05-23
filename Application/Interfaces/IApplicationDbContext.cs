@@ -70,6 +70,7 @@ namespace Application.Interfaces
         DbSet<Order> Orders { get; set; }
         DbSet<OrderRow> OrderRows { get; set; }
         DbSet<Payment> Payments { get; set; }
+        DbSet<Notification> Notifications { get; set; }
         IDbContextTransaction DatabaseBeginTransaction();
         Task SaveChangesAsync();
         DbSet<TEntity> set<TEntity>() where TEntity : class;

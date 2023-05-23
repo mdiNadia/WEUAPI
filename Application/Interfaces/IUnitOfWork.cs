@@ -66,6 +66,7 @@ namespace Application.Interfaces
         IOrderRepository Orders { get; }
         IOrderRowRepository OrderRows { get; }
         IPaymentRepository Payments { get; }
+        INotificationRepository Notifications { get; }
         Task CompleteAsync();
         IDbContextTransaction BeginTransaction();
     }

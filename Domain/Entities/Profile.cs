@@ -52,6 +52,9 @@ namespace Domain.Entities
         public ICollection<Like> Likes { get; set; }
         public ICollection<View> Views { get; set; }
 
+        public ICollection<Notification> Notifier { get; set; }//اطلاع دهنده
+
+
         public ICollection<TransferValueHistory> TransfererCoins { get; set; }
         public ICollection<TransferValueHistory> RecieverCoins { get; set; }
     }

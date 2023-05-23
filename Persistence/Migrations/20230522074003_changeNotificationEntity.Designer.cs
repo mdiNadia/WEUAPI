@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence.Contexts;
 
@@ -11,9 +12,11 @@ using Persistence.Contexts;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230522074003_changeNotificationEntity")]
+    partial class changeNotificationEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,7 +58,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("AdCategories", (string)null);
+                    b.ToTable("AdCategories");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdCategoryAdvertising", b =>
@@ -81,7 +84,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AdvertisingId");
 
-                    b.ToTable("AdCategoryAdvertisings", (string)null);
+                    b.ToTable("AdCategoryAdvertisings");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdCategoryCost", b =>
@@ -109,7 +112,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AdCategoryCosts", (string)null);
+                    b.ToTable("AdCategoryCosts");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdCity", b =>
@@ -135,7 +138,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.ToTable("AdCities", (string)null);
+                    b.ToTable("AdCities");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdCountry", b =>
@@ -161,7 +164,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CountryId");
 
-                    b.ToTable("AdCountries", (string)null);
+                    b.ToTable("AdCountries");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdNeighborhood", b =>
@@ -187,7 +190,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("NeighborhoodId");
 
-                    b.ToTable("AdNeighborhoods", (string)null);
+                    b.ToTable("AdNeighborhoods");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdProvince", b =>
@@ -213,7 +216,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProvinceId");
 
-                    b.ToTable("AdProvinces", (string)null);
+                    b.ToTable("AdProvinces");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdReport", b =>
@@ -239,7 +242,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("AdReports", (string)null);
+                    b.ToTable("AdReports");
                 });
 
             modelBuilder.Entity("Domain.Entities.Advertising", b =>
@@ -291,7 +294,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AdvertiserId");
 
-                    b.ToTable("Advertisings", (string)null);
+                    b.ToTable("Advertisings");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdvertisingAttachment", b =>
@@ -309,7 +312,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AdvertisingId");
 
-                    b.ToTable("AdvertisingAttachments", (string)null);
+                    b.ToTable("AdvertisingAttachments");
                 });
 
             modelBuilder.Entity("Domain.Entities.AppSetting", b =>
@@ -340,7 +343,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppSettings", (string)null);
+                    b.ToTable("AppSettings");
                 });
 
             modelBuilder.Entity("Domain.Entities.ApplicationUser", b =>
@@ -454,7 +457,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("FileTypeId");
 
-                    b.ToTable("Attachments", (string)null);
+                    b.ToTable("Attachments");
                 });
 
             modelBuilder.Entity("Domain.Entities.BankAccount", b =>
@@ -493,7 +496,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("BankAccounts", (string)null);
+                    b.ToTable("BankAccounts");
                 });
 
             modelBuilder.Entity("Domain.Entities.Boost", b =>
@@ -527,7 +530,7 @@ namespace Persistence.Migrations
                     b.HasIndex("AdvertisingId")
                         .IsUnique();
 
-                    b.ToTable("Boosts", (string)null);
+                    b.ToTable("Boosts");
                 });
 
             modelBuilder.Entity("Domain.Entities.City", b =>
@@ -561,7 +564,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProvinceId");
 
-                    b.ToTable("Cities", (string)null);
+                    b.ToTable("Cities");
                 });
 
             modelBuilder.Entity("Domain.Entities.Comment", b =>
@@ -602,7 +605,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Domain.Entities.ConfirmResult", b =>
@@ -684,7 +687,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ConfirmedResults", (string)null);
+                    b.ToTable("ConfirmedResults");
                 });
 
             modelBuilder.Entity("Domain.Entities.ConfirmedResultAttachment", b =>
@@ -702,7 +705,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AttachmentId");
 
-                    b.ToTable("ConfirmedResultAttachments", (string)null);
+                    b.ToTable("ConfirmedResultAttachments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Connection", b =>
@@ -731,7 +734,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("GroupName");
 
-                    b.ToTable("Connections", (string)null);
+                    b.ToTable("Connections");
                 });
 
             modelBuilder.Entity("Domain.Entities.Country", b =>
@@ -781,7 +784,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CurrencyId");
 
-                    b.ToTable("Countries", (string)null);
+                    b.ToTable("Countries");
                 });
 
             modelBuilder.Entity("Domain.Entities.Currency", b =>
@@ -810,7 +813,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Currencies", (string)null);
+                    b.ToTable("Currencies");
                 });
 
             modelBuilder.Entity("Domain.Entities.CurrencySetting", b =>
@@ -840,7 +843,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CurrencyId");
 
-                    b.ToTable("CurrencySettings", (string)null);
+                    b.ToTable("CurrencySettings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Favorite", b =>
@@ -858,7 +861,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Favorites", (string)null);
+                    b.ToTable("Favorites");
                 });
 
             modelBuilder.Entity("Domain.Entities.FileType", b =>
@@ -888,7 +891,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FileTypes", (string)null);
+                    b.ToTable("FileTypes");
                 });
 
             modelBuilder.Entity("Domain.Entities.Group", b =>
@@ -898,7 +901,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Groups", (string)null);
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("Domain.Entities.Language", b =>
@@ -933,7 +936,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("IconId");
 
-                    b.ToTable("Languages", (string)null);
+                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("Domain.Entities.Like", b =>
@@ -951,7 +954,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Likes", (string)null);
+                    b.ToTable("Likes");
                 });
 
             modelBuilder.Entity("Domain.Entities.LikeComment", b =>
@@ -969,7 +972,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("LikeComments", (string)null);
+                    b.ToTable("LikeComments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Message", b =>
@@ -1027,7 +1030,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SenderId1");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Domain.Entities.Neighborhood", b =>
@@ -1061,7 +1064,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.ToTable("Neighborhoods", (string)null);
+                    b.ToTable("Neighborhoods");
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -1088,7 +1091,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("ObserverId", "Id");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Domain.Entities.Order", b =>
@@ -1116,7 +1119,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProfileId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Domain.Entities.OrderRow", b =>
@@ -1155,7 +1158,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderRows", (string)null);
+                    b.ToTable("OrderRows");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -1187,7 +1190,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Profile", b =>
@@ -1255,7 +1258,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Profiles", (string)null);
+                    b.ToTable("Profiles");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProfileBlock", b =>
@@ -1278,7 +1281,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("ProfileBlocks", (string)null);
+                    b.ToTable("ProfileBlocks");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProfileReport", b =>
@@ -1321,7 +1324,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("ProfileReports", (string)null);
+                    b.ToTable("ProfileReports");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProfileScore", b =>
@@ -1352,7 +1355,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("IconId");
 
-                    b.ToTable("ProfileScores", (string)null);
+                    b.ToTable("ProfileScores");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProfileSetting", b =>
@@ -1382,7 +1385,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProfileSettings", (string)null);
+                    b.ToTable("ProfileSettings");
                 });
 
             modelBuilder.Entity("Domain.Entities.Province", b =>
@@ -1416,7 +1419,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CountryId");
 
-                    b.ToTable("Provinces", (string)null);
+                    b.ToTable("Provinces");
                 });
 
             modelBuilder.Entity("Domain.Entities.RejectResult", b =>
@@ -1493,7 +1496,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RejectedResults", (string)null);
+                    b.ToTable("RejectedResults");
                 });
 
             modelBuilder.Entity("Domain.Entities.RejectedResultAttachment", b =>
@@ -1511,7 +1514,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AttachmentId");
 
-                    b.ToTable("RejectedResultAttachments", (string)null);
+                    b.ToTable("RejectedResultAttachments");
                 });
 
             modelBuilder.Entity("Domain.Entities.ReportReason", b =>
@@ -1539,7 +1542,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("ReportReasons", (string)null);
+                    b.ToTable("ReportReasons");
                 });
 
             modelBuilder.Entity("Domain.Entities.SavedAd", b =>
@@ -1557,7 +1560,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AdvertisingId");
 
-                    b.ToTable("SavedAds", (string)null);
+                    b.ToTable("SavedAds");
                 });
 
             modelBuilder.Entity("Domain.Entities.SendSmsCode", b =>
@@ -1584,7 +1587,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SendSmsCodes", (string)null);
+                    b.ToTable("SendSmsCodes");
                 });
 
             modelBuilder.Entity("Domain.Entities.Transaction", b =>
@@ -1627,7 +1630,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Transactions", (string)null);
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Domain.Entities.TransactionStatus", b =>
@@ -1652,7 +1655,7 @@ namespace Persistence.Migrations
                     b.HasIndex("TransactionId")
                         .IsUnique();
 
-                    b.ToTable("TransactionStatuses", (string)null);
+                    b.ToTable("TransactionStatuses");
                 });
 
             modelBuilder.Entity("Domain.Entities.TransactionType", b =>
@@ -1677,7 +1680,7 @@ namespace Persistence.Migrations
                     b.HasIndex("TransactionId")
                         .IsUnique();
 
-                    b.ToTable("TransactionTypes", (string)null);
+                    b.ToTable("TransactionTypes");
                 });
 
             modelBuilder.Entity("Domain.Entities.TransferValueHistory", b =>
@@ -1695,7 +1698,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("TransferValueHistories", (string)null);
+                    b.ToTable("TransferValueHistories");
                 });
 
             modelBuilder.Entity("Domain.Entities.UserFollowing", b =>
@@ -1713,7 +1716,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("UserFollowings", (string)null);
+                    b.ToTable("UserFollowings");
                 });
 
             modelBuilder.Entity("Domain.Entities.UserLoginHistory", b =>
@@ -1736,7 +1739,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UsersLoginHistory", (string)null);
+                    b.ToTable("UsersLoginHistory");
                 });
 
             modelBuilder.Entity("Domain.Entities.View", b =>
@@ -1754,7 +1757,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TargetId");
 
-                    b.ToTable("Views", (string)null);
+                    b.ToTable("Views");
                 });
 
             modelBuilder.Entity("Domain.Entities.Wallet", b =>
@@ -1805,7 +1808,7 @@ namespace Persistence.Migrations
                     b.HasIndex("ProfileId")
                         .IsUnique();
 
-                    b.ToTable("Wallets", (string)null);
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -2129,7 +2132,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.ApplicationUser", b =>
                 {
-                    b.OwnsMany("Domain.Entities.ApplicationUser.RefreshTokens#Domain.Entities.RefreshToken", "RefreshTokens", b1 =>
+                    b.OwnsMany("Domain.Entities.RefreshToken", "RefreshTokens", b1 =>
                         {
                             b1.Property<string>("ApplicationUserId")
                                 .HasColumnType("nvarchar(450)");
@@ -2155,7 +2158,7 @@ namespace Persistence.Migrations
 
                             b1.HasKey("ApplicationUserId", "Id");
 
-                            b1.ToTable("RefreshToken", (string)null);
+                            b1.ToTable("RefreshToken");
 
                             b1.WithOwner()
                                 .HasForeignKey("ApplicationUserId");

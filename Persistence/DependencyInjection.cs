@@ -82,6 +82,7 @@ namespace Persistence
             services.AddScoped<IOrderRowRepository, OrderRowRepository>();
             services.AddScoped<IFileTypeRepository, FileTypeRepository>();
             services.AddScoped<IPaymentRepository,PaymentRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         }

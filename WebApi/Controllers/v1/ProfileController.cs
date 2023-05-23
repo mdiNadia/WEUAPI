@@ -1,9 +1,9 @@
 ﻿
 using Application.Dtos.ConfirmedResult;
 using Application.Dtos.Profile;
-using Application.Dtos.Wallet;
 using Application.Features.Profile.Commands;
 using Application.Features.Profile.Queries;
+using Application.Features.Wallet.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
 using WebApi.Helpers;

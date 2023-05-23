@@ -1,13 +1,12 @@
 ﻿using Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Persistence.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private IApplicationDbContext _context;
-        private IHttpContextAccessor _httpContextAccessor;
+        private readonly IApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         public IProfileRepository Profiles { get; private set; }
         public IUserLoginHistoryRepository UsersLoginHistory { get; private set; }
         public IProfileSettingRepository ProfileSettings { get; private set; }
@@ -65,62 +64,9 @@ namespace Persistence.Repositories
         public ITransferValueHistoryRepository TransferValueHistories { get; private set; }
         public ISendSmsCodeRepository SendSmsCodes { get; private set; }
         public IPaymentRepository Payments { get; private set; }
+        public INotificationRepository Notifications { get; private set; }
 
-        public UnitOfWork(IApplicationDbContext context,
-            IHttpContextAccessor httpContextAccessor,
-            IProfileScoreRepository ProfileScore,
-            IProfileRepository Profile,
-            IProfileSettingRepository ProfileSetting,
-            IAdCategoryRepository AdCategorie,
-            IAdvertisingRepository Advertising,
-            IAttachmentRepository Attachment,
-            IAdCategoryAdvertisingRepository AdCategoryAdvertising,
-            IAdvertisingAttachmentRepository AdvertisingAttachment,
-            ICommentRepository Comment,
-            ISavedAdRepository SavedAd,
-            IMessageRepository Message,
-            IWalletRepository Wallet,
-            ITransactionRepository Transaction,
-            IBankAccountRepository BankAccount,
-            ITransactionTypeRepository TransactionType,
-            IUserFollowingsRepository UserFollowing,
-            IProfileBlocksRepository ProfileBlock,
-            IReportReasonRepository ReportReason,
-            IProfileReportRepository ProfileReport,
-            IAdReportRepository AdReport,
-            ILanguageRepository Language,
-            ILikeRepository Like,
-            IFavoriteRepository favorite,
-            IViewRepository View,
-            ICountryRepository Country,
-            ICurrencyRepository Currency,
-            ICurrencySettingRepository CurrencySetting,
-             IUserRepository User,
-             IRejectResultRepository RejectResult,
-             IBoostRepository Boost,
-             IAppSettingRepository BoostSetting,
-             IProvinceRepository Province,
-             ICityRepository City,
-             INeighborhoodRepository Neighborhood,
-             IAdCategoryCostRepository AdCategoryCost,
-             IAdCountryRepository AdCountry,
-             IAdProvinceRepository AdProvince,
-             IAdCityRepository AdCity,
-             IAdNeighborhoodRepository AdNeighborhood,
-            IConfirmedResultRepository ConfirmedResult,
-            IConfirmedResultAttachmentRepository ConfirmedResultAttachment,
-             IRejectedResultAttachmentRepository RejectedResultAttachment,
-              IFileTypeRepository FileType,
-              ILikeCommentRepository LikeComment,
-              IUserLoginHistoryRepository UserLoginHistory,
-              IApplicationRoleRepository ApplicationRole,
-              ISendSmsCodeRepository sendSmsCode,
-              ITransactionStatusRepository transactionStatus,
-              ITransferValueHistoryRepository transferValueHistory,
-              IOrderRepository orderRepository,
-              IOrderRowRepository orderRowRepository,
-              IPaymentRepository paymentRepository
-            )
+        public UnitOfWork(IApplicationDbContext context,IHttpContextAccessor httpContextAccessor)
         {
 
             this._context = context;
@@ -177,6 +123,7 @@ namespace Persistence.Repositories
             Orders = new OrderRepository(this._context, this._httpContextAccessor);
             OrderRows = new OrderRowRepository(this._context, this._httpContextAccessor);
             Payments = new PaymentRepository(this._context, this._httpContextAccessor);
+            Notifications = new NotificationRepository(this._context, this._httpContextAccessor);
         }
         public async Task CompleteAsync()
         {

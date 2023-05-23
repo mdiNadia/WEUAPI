@@ -33,6 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Dtos\Wallet\" />
 	  <Folder Include="Features\Value\Queries\" />
 	  <Folder Include="Features\Payment\Queries\" />
 	</ItemGroup>

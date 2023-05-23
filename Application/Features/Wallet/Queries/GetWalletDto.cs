@@ -1,6 +1,6 @@
 ﻿using Application.Dtos.Common;
 
-namespace Application.Dtos.Wallet
+namespace Application.Features.Wallet.Queries
 {
     public record GetWalletDto
     {
@@ -15,7 +15,7 @@ namespace Application.Dtos.Wallet
 
         public decimal TotalCredit { get; init; }
 
-        public int Value { get; set; } 
+        public int Value { get; set; }
         public GetNameAndId User { get; init; }
     }
 
