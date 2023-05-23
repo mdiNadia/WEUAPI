@@ -16,6 +16,6 @@ namespace Application.Features.Notification.Queries
         public string Title { get; set; }
         public string Body { get; set; }
         public GetNameAndId Observer { get; set; }
-        public GetNameAndId Targeter { get; set; }
+        public GetNameAndId? Targeter { get; set; }
     }
 }

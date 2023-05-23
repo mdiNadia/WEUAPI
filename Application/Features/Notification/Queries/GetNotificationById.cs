@@ -31,9 +31,9 @@ namespace Application.Features.Notification.Queries
                         Body = c.Body,
                         NotificationType = c.NotificationType,
                         Title = c.Title,
-                        Targeter = new Dtos.Common.GetNameAndId
+                        Targeter = c.Target == null ? null : new Dtos.Common.GetNameAndId
                         {
-                            Id = c.TargetId,
+                            Id = (int)c.TargetId,
                             Name = c.Target.Name
                         },
                         Observer = new Dtos.Common.GetNameAndId
