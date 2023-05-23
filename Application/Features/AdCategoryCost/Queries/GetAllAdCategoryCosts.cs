@@ -1,5 +1,4 @@
-﻿using Application.Dtos.AdCategoryCost;
-using Application.Dtos.Common;
+﻿using Application.Dtos.Common;
 using Application.Errors;
 using Application.Interfaces;
 using MediatR;

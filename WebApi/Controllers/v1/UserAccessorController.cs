@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Account;
-using Application.Dtos.JWT;
 using Application.Dtos.Register;
 using Application.Services.JWT;
 using Application.Services.Sms;

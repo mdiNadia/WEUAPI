@@ -1,6 +1,6 @@
 ﻿using Application.Dtos.Advertising;
-using Application.Dtos.ConfirmedResult;
 using Application.Errors;
+using Application.Features.ConfirmedResult.Queries;
 using Application.Interfaces;
 using Application.Services.UserAccessor;
 using MediatR;

@@ -1,4 +1,4 @@
-﻿using Application.Dtos.Profile;
+﻿using Application.Features.Profile.Dtos;
 using Domain.Entities;
 
 namespace Application.Interfaces

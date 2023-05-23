@@ -1,5 +1,4 @@
-﻿using Application.Dtos.Comment;
-using Application.Dtos.Common;
+﻿using Application.Dtos.Common;
 using Application.Errors;
 using Application.ExtensionMethods;
 using Application.Interfaces;

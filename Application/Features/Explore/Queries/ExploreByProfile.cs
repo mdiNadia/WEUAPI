@@ -1,5 +1,5 @@
-﻿using Application.Dtos.Profile;
-using Application.Errors;
+﻿using Application.Errors;
+using Application.Features.Profile.Dtos;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

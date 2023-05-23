@@ -1,5 +1,5 @@
-﻿using Application.Dtos.Boost;
-using Application.Errors;
+﻿using Application.Errors;
+using Application.Features.Boost.Queries;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

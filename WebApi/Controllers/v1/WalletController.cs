@@ -1,5 +1,4 @@
-﻿using Application.Dtos.Order;
-using Application.Features.Order.Queries;
+﻿using Application.Features.Order.Queries;
 using Application.Features.Transaction.Commands;
 using Application.Features.Value.Commands;
 using Application.Features.View.Commands;
@@ -122,7 +121,7 @@ namespace WebApi.Controllers.v1
             var route = Request.Path.Value;
             var pagedData = await Mediator.Send(new GetAllUserOrders(filter));
             var totalRecords = await Mediator.Send(new GetAllUserOrdersCount());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetAllUserOrdersDto>(pagedData, filter, totalRecords, _uriService, route);
+            var pagedReponse = PaginationHelper.CreatePagedReponse<GetUserOrdersDto>(pagedData, filter, totalRecords, _uriService, route);
             return Ok(pagedReponse);
         }
     }

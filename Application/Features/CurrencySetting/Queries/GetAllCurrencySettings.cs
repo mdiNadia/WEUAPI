@@ -1,5 +1,4 @@
-﻿using Application.Dtos.CurrencySetting;
-using Application.Errors;
+﻿using Application.Errors;
 using Application.Interfaces;
 using Mapster;
 using MediatR;

@@ -1,9 +1,9 @@
 ﻿using Application.Dtos.Advertising;
 using Application.Dtos.Common;
-using Application.Dtos.ConfirmedResult;
-using Application.Dtos.Profile;
 using Application.Errors;
 using Application.ExtensionMethods;
+using Application.Features.ConfirmedResult.Queries;
+using Application.Features.Profile.Dtos;
 using Application.Features.Wallet.Queries;
 using Application.Interfaces;
 using Application.Services.UserAccessor;

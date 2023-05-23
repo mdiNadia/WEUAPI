@@ -1,6 +1,4 @@
-﻿
-using Application.Dtos.Neighbourhood;
-using Application.Features.Neighbourhood.Commands;
+﻿using Application.Features.Neighbourhood.Commands;
 using Application.Features.Neighbourhood.Queries;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;

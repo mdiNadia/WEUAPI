@@ -1,7 +1,6 @@
 ﻿
 
 using Application.Dtos.Common;
-using Application.Dtos.Neighbourhood;
 
 using Application.Errors;
 using Application.Interfaces;

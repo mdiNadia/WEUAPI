@@ -1,5 +1,5 @@
-﻿using Application.Dtos.ConfirmedResult;
-using Application.Features.Advertising.Commands;
+﻿using Application.Features.Advertising.Commands;
+using Application.Features.ConfirmedResult.Queries;
 using Application.Features.User.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Common;
-using Application.Dtos.Order;
 using Application.Errors;
 using Application.Interfaces;
 using Application.Services.UserAccessor;
@@ -9,7 +8,7 @@ using System.Net;
 
 namespace Application.Features.Order.Queries
 {
-    public class GetAllUserOrders : IRequest<IEnumerable<GetAllUserOrdersDto>>
+    public class GetAllUserOrders : IRequest<IEnumerable<GetUserOrdersDto>>
     {
         private readonly IPaginationFilter _filter;
         public GetAllUserOrders(IPaginationFilter filter)
@@ -17,7 +16,7 @@ namespace Application.Features.Order.Queries
             _filter = filter;
         }
 
-        public class GetAllUserOrdersHandler : IRequestHandler<GetAllUserOrders, IEnumerable<GetAllUserOrdersDto>>
+        public class GetAllUserOrdersHandler : IRequestHandler<GetAllUserOrders, IEnumerable<GetUserOrdersDto>>
         {
             private readonly IUserAccessor _userAccessor;
             private readonly IUnitOfWork _unitOfWork;
@@ -27,7 +26,7 @@ namespace Application.Features.Order.Queries
                 this._userAccessor = userAccessor;
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetAllUserOrdersDto>> Handle(GetAllUserOrders query, CancellationToken cancellationToken)
+            public async Task<IEnumerable<GetUserOrdersDto>> Handle(GetAllUserOrders query, CancellationToken cancellationToken)
             {
                 var profile = await _unitOfWork.Profiles.GetQueryList()
                     .FirstAsync(c => c.Username == _userAccessor.GetCurrentUserNameAsync());
@@ -40,7 +39,7 @@ namespace Application.Features.Order.Queries
                     .OrderByDescending(c => c.CreationDate)
                     .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
                     .Take(query._filter.PageSize)
-                    .Select(c => new GetAllUserOrdersDto()
+                    .Select(c => new GetUserOrdersDto()
                     {
                         CreationDate = c.CreationDate,
                         Description = c.Description,

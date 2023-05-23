@@ -1,7 +1,4 @@
-﻿
-using Application.Dtos.Neighbourhood;
-
-using Application.Errors;
+﻿using Application.Errors;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

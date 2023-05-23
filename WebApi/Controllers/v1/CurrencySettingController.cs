@@ -1,5 +1,4 @@
-﻿using Application.Dtos.CurrencySetting;
-using Application.Features.CurrencySetting.Commands;
+﻿using Application.Features.CurrencySetting.Commands;
 using Application.Features.CurrencySetting.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

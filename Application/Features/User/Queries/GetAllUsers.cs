@@ -1,5 +1,4 @@
-﻿using Application.Dtos.User;
-using Application.Errors;
+﻿using Application.Errors;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

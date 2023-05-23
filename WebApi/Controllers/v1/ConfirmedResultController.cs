@@ -1,5 +1,4 @@
-﻿using Application.Dtos.ConfirmedResult;
-using Application.Features.ConfirmedResult.Commands;
+﻿using Application.Features.ConfirmedResult.Commands;
 using Application.Features.ConfirmedResult.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

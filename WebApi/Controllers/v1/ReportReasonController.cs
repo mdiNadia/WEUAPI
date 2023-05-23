@@ -1,5 +1,4 @@
-﻿using Application.Dtos.ReportReason;
-using Application.Features.ReportReason.Commands;
+﻿using Application.Features.ReportReason.Commands;
 using Application.Features.ReportReason.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

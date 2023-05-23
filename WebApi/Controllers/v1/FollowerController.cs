@@ -1,6 +1,6 @@
-﻿using Application.Dtos.Profile;
-using Application.Features.AdCategory.Queries;
+﻿using Application.Features.AdCategory.Queries;
 using Application.Features.Followers.Queries;
+using Application.Features.Profile.Dtos;
 using Application.Followers;
 using Auth0.ManagementApi.Models;
 using MediatR;

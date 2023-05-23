@@ -1,5 +1,4 @@
-﻿using Application.Dtos.AdCategory;
-using Application.Features.AdCategory.Commands;
+﻿using Application.Features.AdCategory.Commands;
 using Application.Features.AdCategory.Queries;
 using Application.Services.UserAccessor;
 using Microsoft.AspNetCore.Mvc;

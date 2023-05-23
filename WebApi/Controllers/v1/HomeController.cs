@@ -1,4 +1,4 @@
-﻿using Application.Dtos.ConfirmedResult;
+﻿using Application.Features.ConfirmedResult.Queries;
 using Application.Features.Home.Queries;
 using Application.Features.Profile.Queries;
 using Microsoft.AspNetCore.Mvc;

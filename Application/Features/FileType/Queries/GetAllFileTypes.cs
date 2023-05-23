@@ -1,5 +1,4 @@
-﻿using Application.Dtos.FileType;
-using Application.Errors;
+﻿using Application.Errors;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

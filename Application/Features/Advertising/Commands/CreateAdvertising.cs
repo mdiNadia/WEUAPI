@@ -108,7 +108,7 @@ namespace Application.Features.Advertising.Commands
                       .GetQueryList().AsNoTracking().FirstOrDefaultAsync();
                         if (boostSetting == null) throw new RestException(HttpStatusCode.BadRequest, "اطلاعات تنظیمات شتابدهی وجود ندارد!!");
                         ; 
-                        Boost boost = new Boost();
+                        Domain.Entities.Boost boost = new Domain.Entities.Boost();
                         boost.NumberOfadViews = command.RequestBoostDto.NumberOfadViews < boostSetting.MinView
                             ? throw new RestException(HttpStatusCode.BadRequest, "تعداد بازدید کننده کمتر از تعداد تعریف شده است!!")
                             : command.RequestBoostDto.NumberOfadViews;

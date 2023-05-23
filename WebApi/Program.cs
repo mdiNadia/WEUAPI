@@ -1,6 +1,5 @@
 using Application;
-using Application.Dtos.JWT;
-
+using Application.Services.JWT;
 using CorePush.Apple;
 using CorePush.Google;
 using Domain.Entities;

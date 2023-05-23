@@ -1,5 +1,4 @@
-﻿using Application.Dtos.Province;
-using Application.Features.Province.Commands;
+﻿using Application.Features.Province.Commands;
 using Application.Features.Province.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

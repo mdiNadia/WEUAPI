@@ -1,7 +1,6 @@
-﻿
-using Application.Dtos.ConfirmedResult;
-using Application.Dtos.Profile;
+﻿using Application.Features.ConfirmedResult.Queries;
 using Application.Features.Profile.Commands;
+using Application.Features.Profile.Dtos;
 using Application.Features.Profile.Queries;
 using Application.Features.Wallet.Queries;
 using Microsoft.AspNetCore.Mvc;

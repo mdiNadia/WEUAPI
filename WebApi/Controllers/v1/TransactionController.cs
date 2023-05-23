@@ -1,6 +1,4 @@
-﻿
-using Application.Dtos.Transaction;
-using Application.Features.Transaction.Commands;
+﻿using Application.Features.Transaction.Commands;
 using Application.Features.Transaction.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

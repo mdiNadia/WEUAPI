@@ -1,5 +1,4 @@
-﻿using Application.Dtos.AdCategoryCost;
-using Application.Features.AdCategoryCost.Commands;
+﻿using Application.Features.AdCategoryCost.Commands;
 using Application.Features.AdCategoryCost.Queries;
 using Application.Services.UserAccessor;
 using Microsoft.AspNetCore.Mvc;

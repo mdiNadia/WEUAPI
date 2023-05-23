@@ -1,5 +1,4 @@
-﻿using Application.Dtos.FileType;
-using Application.Features.FileType.Commands;
+﻿using Application.Features.FileType.Commands;
 using Application.Features.FileType.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

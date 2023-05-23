@@ -1,7 +1,7 @@
 ﻿using Application.Dtos.Common;
-using Application.Dtos.ConfirmedResult;
-using Application.Dtos.Profile;
+using Application.Features.ConfirmedResult.Queries;
 using Application.Features.Explore.Queries;
+using Application.Features.Profile.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
 using WebApi.Helpers;

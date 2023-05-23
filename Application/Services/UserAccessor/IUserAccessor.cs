@@ -1,6 +1,6 @@
 ﻿using Application.Dtos.Account;
-using Application.Dtos.JWT;
 using Application.Dtos.Register;
+using Application.Services.JWT;
 using Domain.Entities;
 
 namespace Application.Services.UserAccessor

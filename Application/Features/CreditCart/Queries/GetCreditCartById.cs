@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Common;
-using Application.Dtos.CreditCart;
 using Application.Errors;
 using Application.Interfaces;
 using MediatR;

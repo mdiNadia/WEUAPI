@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Account;
-using Application.Dtos.JWT;
 using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;

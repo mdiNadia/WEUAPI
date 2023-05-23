@@ -1,6 +1,4 @@
-﻿
-using Application.Dtos.Attachment;
-using Application.Features.Attachment.Commands;
+﻿using Application.Features.Attachment.Commands;
 using Application.Features.Attachment.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

@@ -1,5 +1,4 @@
-﻿using Application.Dtos.Comment;
-using Application.Features.Comment.Commands;
+﻿using Application.Features.Comment.Commands;
 using Application.Features.Comment.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

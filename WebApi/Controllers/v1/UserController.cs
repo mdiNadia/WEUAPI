@@ -1,5 +1,4 @@
-﻿using Application.Dtos.User;
-using Application.Features.User.Commands;
+﻿using Application.Features.User.Commands;
 using Application.Features.User.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

@@ -1,6 +1,4 @@
-﻿
-using Application.Dtos.AppSetting;
-using Application.Features.AppSetting.Commands;
+﻿using Application.Features.AppSetting.Commands;
 using Application.Features.AppSetting.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Services;

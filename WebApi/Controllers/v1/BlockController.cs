@@ -1,6 +1,6 @@
-﻿using Application.Dtos.Profile;
-using Application.Features.Blocks.Commands;
+﻿using Application.Features.Blocks.Commands;
 using Application.Features.Blocks.Queries;
+using Application.Features.Profile.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

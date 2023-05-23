@@ -1,5 +1,4 @@
-﻿using Application.Dtos.Language;
-using Application.Features.ProfileScore.Commands;
+﻿using Application.Features.ProfileScore.Commands;
 using Application.Features.ProfileScore.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

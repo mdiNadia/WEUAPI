@@ -1,5 +1,5 @@
-﻿using Application.Dtos.Profile;
-using Application.Features.Blocks.Queries;
+﻿using Application.Features.Blocks.Queries;
+using Application.Features.Profile.Dtos;
 using Application.Features.Report.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

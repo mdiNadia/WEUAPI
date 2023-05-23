@@ -1,5 +1,4 @@
-﻿using Application.Dtos.RejectedResult;
-using Application.Features.RejectedResult.Commands;
+﻿using Application.Features.RejectedResult.Commands;
 using Application.Features.RejectedResult.Queries;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;

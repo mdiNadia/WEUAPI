@@ -1,5 +1,4 @@
 ﻿using Application.Dtos.Advertising;
-using Application.Dtos.RejectedResult;
 using Application.Errors;
 using Application.Interfaces;
 using MediatR;
