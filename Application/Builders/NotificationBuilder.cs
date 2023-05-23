@@ -15,6 +15,11 @@ namespace Application.Builders
         {
 
             builder.HasKey(k => new { k.ObserverId , k.Id });
+            builder.HasOne(o => o.Target)
+              .WithMany(f => f.Notified)
+              .HasForeignKey(o => o.TargetId)
+              .IsRequired(true)
+              .OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(o => o.Observer)
                 .WithMany(f => f.Notifier)
                 .HasForeignKey(o => o.ObserverId)

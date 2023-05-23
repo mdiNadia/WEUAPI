@@ -7,10 +7,10 @@ namespace Domain.Entities
     public class Profile : BaseEntity
     {
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public string Username { get; set; }
-        public string Bio { get; set; }
-        public string Link { get; set; }
+        public string? Bio { get; set; }
+        public string? Link { get; set; }
         public int Score { get; set; }
         public ProfileType ProfileTypeEnum { get; set; }
 
@@ -53,7 +53,7 @@ namespace Domain.Entities
         public ICollection<View> Views { get; set; }
 
         public ICollection<Notification> Notifier { get; set; }//اطلاع دهنده
-
+        public ICollection<Notification> Notified { get; set; }//اطلاع شونده
 
         public ICollection<TransferValueHistory> TransfererCoins { get; set; }
         public ICollection<TransferValueHistory> RecieverCoins { get; set; }

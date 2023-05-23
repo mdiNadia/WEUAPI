@@ -20,7 +20,6 @@ namespace Application.Features.Notification.Commands
     {
         public string Title { get; set; }
         public string Body { get; set; }
-        public NotificationType NotificationType { get; set; }
 
         public class CreateNotificationHandler : IRequestHandler<CreateNotification, int>
         {
@@ -43,7 +42,8 @@ namespace Application.Features.Notification.Commands
                 model.Observer = profile;
                 model.Title = command.Title;
                 model.Body = command.Body;
-                model.NotificationType = command.NotificationType;
+                model.NotificationType = Domain.Enums.NotificationType.app;
+                model.Target = null;
                 _unitOfWork.Notifications.Insert(model);
                 try
                 {

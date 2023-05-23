@@ -9,7 +9,7 @@ namespace Domain.Entities
         //اسم فیلم یا عکس که در دیتابیس ذخیره میشود
         public string FileName { get; set; }
         public int? FileTypeId { get; set; }
-        public FileType FileType { get; set; }
+        public FileType? FileType { get; set; }
 
 
         //Relations

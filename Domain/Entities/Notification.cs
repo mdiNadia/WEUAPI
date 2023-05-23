@@ -12,6 +12,9 @@ namespace Domain.Entities
     {
         public int ObserverId { get; set; }
         public Profile Observer { get; set; }
+
+        public int TargetId { get; set; }
+        public Profile Target { get; set; }
         public NotificationType NotificationType { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }

@@ -8,8 +8,6 @@ namespace Application.Builders
     {
         public void Configure(EntityTypeBuilder<AdCategory> builder)
         {
-            builder.Property(x => x.ParentId).IsRequired(false);
-            //Relations
             builder.HasOne(x => x.Parent).WithMany(x => x.Children).HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.NoAction);
             builder.HasOne(x => x.CategoryCost).WithOne(x => x.AdCategory).HasForeignKey<AdCategoryCost>(x => x.AdCategoryId);
 

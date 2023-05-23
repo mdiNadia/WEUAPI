@@ -75,13 +75,10 @@ namespace Persistence.Contexts
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.ApplyConfiguration<Profile>(new ProfileBuilder());
-            builder.ApplyConfiguration<ProfileSetting>(new ProfileSettingBuilder());
             builder.ApplyConfiguration<ApplicationUser>(new UserBuilder());
-            builder.ApplyConfiguration<ProfileScore>(new ProfileScoreBuilder());
             builder.ApplyConfiguration<AdCategory>(new AdCategoryBuilder());
             builder.ApplyConfiguration<Advertising>(new AdvertisingBuilder());
             builder.ApplyConfiguration<Attachment>(new AttachmentBuilder());
-            builder.ApplyConfiguration<Comment>(new CommentBuilder());
             builder.ApplyConfiguration<Message>(new MessageBuilder());
             builder.ApplyConfiguration<Wallet>(new WalletBuilder());
             builder.ApplyConfiguration<Transaction>(new TransactionBuilder());
@@ -106,7 +103,6 @@ namespace Persistence.Contexts
             builder.ApplyConfiguration<Favorite>(new FavoriteBuilder());
             builder.ApplyConfiguration<LikeComment>(new LinkeCommentBuilder());
             builder.ApplyConfiguration<RejectedResultAttachment>(new RejectedResultAttachmentBuilder());
-            builder.ApplyConfiguration<Order>(new OrderBuilder());
             builder.ApplyConfiguration<TransferValueHistory>(new TransferValueHistoryBuilder());
             builder.ApplyConfiguration<Notification>(new NotificationBuilder());
             base.OnModelCreating(builder);

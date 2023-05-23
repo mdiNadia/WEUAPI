@@ -9,8 +9,6 @@ namespace Application.Builders
         public void Configure(EntityTypeBuilder<Currency> builder)
         {
             builder.HasMany(c => c.Countries).WithOne(c => c.Currency).HasForeignKey(c => c.CurrencyId).IsRequired(false).OnDelete(DeleteBehavior.Cascade);
-
-
         }
     }
 }

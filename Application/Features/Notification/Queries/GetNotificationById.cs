@@ -24,13 +24,23 @@ namespace Application.Features.Notification.Queries
             {
 
                 var model = await _unitOfWork.Notifications.GetQueryList()
-                    .Where(c => c.Id == query.Id).Select(c => new GetNotificationDto()
+                    .Where(c => c.Id == query.Id).Include(c=>c.Target).Include(c=>c.Observer).Select(c => new GetNotificationDto()
                     {
                         Id = query.Id,
                         CreationDate = c.CreationDate,
                         Body = c.Body,
                         NotificationType = c.NotificationType,
                         Title = c.Title,
+                        Targeter = new Dtos.Common.GetNameAndId
+                        {
+                            Id = c.TargetId,
+                            Name = c.Target.Name
+                        },
+                        Observer = new Dtos.Common.GetNameAndId
+                        {
+                            Id = c.ObserverId,
+                            Name = c.Observer.Name
+                        }
                     })
                    .FirstOrDefaultAsync();
                 if (model == null) throw new RestException(HttpStatusCode.BadRequest, "اطلاعات وجود ندارد!");

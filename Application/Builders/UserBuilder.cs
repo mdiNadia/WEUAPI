@@ -9,7 +9,6 @@ namespace Application.Builders
         public void Configure(EntityTypeBuilder<ApplicationUser> builder)
         {
             builder.Property(c => c.KnownAs).IsRequired(false);
-            //builder.HasMany(x => x.Profiles).WithOne(x => x.User).IsRequired(true);
         }
     }
 }

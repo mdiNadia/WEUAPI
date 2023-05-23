@@ -9,8 +9,6 @@ namespace Application.Builders
         public void Configure(EntityTypeBuilder<AdCategoryCost> builder)
         {
             builder.HasOne(x => x.AdCategory).WithOne(x => x.CategoryCost).HasForeignKey<AdCategory>(x => x.CategoryCostId);
-
-
         }
     }
 }

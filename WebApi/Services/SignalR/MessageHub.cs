@@ -2,6 +2,7 @@
 using Application.Interfaces;
 using Application.Services.UserAccessor;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -96,6 +97,18 @@ namespace WebApi.Services.SignalR
             }
 
             _unitOfWork.Messages.AddMessage(message);
+
+            var notification = new Domain.Entities.Notification()
+            {
+                CreationDate = DateTime.Now,
+                Observer = (Profile)sender.Profiles,
+                Target = (Profile)recipient.Profiles,
+                NotificationType = NotificationType.message,
+                Title = "New Message",
+                Body = $"you hanve a new message from {sender.Profiles.First().Username}"
+            };
+            _unitOfWork.Notifications.Insert(notification);
+
             try
             {
                 await _unitOfWork.CompleteAsync();

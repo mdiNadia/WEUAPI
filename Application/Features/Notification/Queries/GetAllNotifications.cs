@@ -30,6 +30,7 @@ namespace Application.Features.Notification.Queries
                 {
                     var model = await _unitOfWork.Notifications.GetQueryList()
                   .AsNoTracking()
+                  .Include(c => c.Observer).Include(c => c.Target)
                       .Select(c => new GetNotificationDto()
                       {
                           Id = c.Id,
@@ -37,6 +38,16 @@ namespace Application.Features.Notification.Queries
                           Body = c.Body,
                           NotificationType = c.NotificationType,
                           CreationDate = c.CreationDate,
+                          Targeter = new Dtos.Common.GetNameAndId
+                          {
+                              Id = c.TargetId,
+                              Name = c.Target.Name
+                          },
+                          Observer = new Dtos.Common.GetNameAndId
+                          {
+                              Id = c.ObserverId,
+                              Name = c.Observer.Name
+                          }
 
                       })
                       .OrderByDescending(c => c.CreationDate)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence.Contexts;
 
@@ -11,9 +12,11 @@ using Persistence.Contexts;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230523075409_freshDatabase")]
+    partial class freshDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1079,16 +1082,11 @@ namespace Persistence.Migrations
                     b.Property<int>("NotificationType")
                         .HasColumnType("int");
 
-                    b.Property<int>("TargetId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ObserverId", "Id");
-
-                    b.HasIndex("TargetId");
 
                     b.ToTable("Notifications");
                 });
@@ -1204,6 +1202,7 @@ namespace Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Bio")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Birthday")
@@ -1229,9 +1228,11 @@ namespace Persistence.Migrations
                         .HasAnnotation("Relational:JsonPropertyName", "following");
 
                     b.Property<string>("Link")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ProfileTypeEnum")
@@ -2383,15 +2384,7 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.Profile", "Target")
-                        .WithMany("Notified")
-                        .HasForeignKey("TargetId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Observer");
-
-                    b.Navigation("Target");
                 });
 
             modelBuilder.Entity("Domain.Entities.Order", b =>
@@ -2864,8 +2857,6 @@ namespace Persistence.Migrations
                     b.Navigation("Followings");
 
                     b.Navigation("Likes");
-
-                    b.Navigation("Notified");
 
                     b.Navigation("Notifier");
 

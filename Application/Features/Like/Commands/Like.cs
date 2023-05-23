@@ -2,6 +2,7 @@
 using Application.Errors;
 using Application.Interfaces;
 using Application.Services.UserAccessor;
+using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -13,11 +14,13 @@ namespace Application.Features.Like.Commands
         public int ConfirmedResultId { get; set; }
         public class LikeHandler : IRequestHandler<LikeCommand, bool>
         {
+            private readonly IMediator _mediator;
             private readonly IUnitOfWork _unitOfWork;
             private readonly IUserAccessor _userAccessor;
 
-            public LikeHandler(IUnitOfWork unitOfWork, IUserAccessor userAccessor)
+            public LikeHandler(IMediator mediator,IUnitOfWork unitOfWork, IUserAccessor userAccessor)
             {
+                this._mediator = mediator;
                 _unitOfWork = unitOfWork;
                 this._userAccessor = userAccessor;
             }
@@ -29,6 +32,7 @@ namespace Application.Features.Like.Commands
                 var target = await _unitOfWork.ConfirmedResults.GetByID(command.ConfirmedResultId);
                 if (target == null)
                     throw new RestException(HttpStatusCode.NotFound, "Not found Advertisement");
+                var targetProfile = await _unitOfWork.Profiles.GetQueryList().FirstAsync(x=>x.Id == target.AdvertiserId);
                 var isExcist = await _unitOfWork.Likes.GetQueryList().SingleOrDefaultAsync(c => c.ObserverId == observer.Id && c.TargetId == target.Id);
                 if (isExcist != null)
                 {
@@ -48,6 +52,17 @@ namespace Application.Features.Like.Commands
                         Target = target,
                     };
                     _unitOfWork.Likes.Insert(like);
+
+                    var notification = new Domain.Entities.Notification()
+                    {
+                        CreationDate = DateTime.Now,
+                        Observer = observer,
+                        Target = targetProfile,
+                        NotificationType = NotificationType.like,
+                        Title = "like",
+                        Body = $"{observer.Username} liked your post"
+                    };
+                    _unitOfWork.Notifications.Insert(notification);
                     try
                     {
                         await _unitOfWork.CompleteAsync();

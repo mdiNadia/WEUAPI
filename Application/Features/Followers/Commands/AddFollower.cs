@@ -3,6 +3,7 @@ using Application.Errors;
 using Application.Interfaces;
 using Application.Services.UserAccessor;
 using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -47,6 +48,17 @@ namespace Application.Followers
                         };
 
                         _unitOfWork.UserFollowings.Insert(following);
+                        var notification = new Domain.Entities.Notification()
+                        {
+                            CreationDate = DateTime.Now,
+                            Observer = observer,
+                            Target = target,
+                            NotificationType = NotificationType.following,
+                            Title = "following",
+                            Body = $"{observer.Username} start following you"
+                        };
+                        _unitOfWork.Notifications.Insert(notification);
+
                     }
                     following.CreationDate = DateTime.Now;
                     try

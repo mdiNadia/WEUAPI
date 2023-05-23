@@ -11,5 +11,6 @@ namespace Domain.Enums
         app = 0,
         following = 1,
         like = 2,
+        message = 3,
     }
 }
