@@ -58,6 +58,7 @@ namespace Application.Features.Like.Commands
                         CreationDate = DateTime.Now,
                         Observer = observer,
                         Target = targetProfile,
+                        AdvertiseId = target.Id,
                         NotificationType = NotificationType.like,
                         Title = "like",
                         Body = $"{observer.Username} liked your post"

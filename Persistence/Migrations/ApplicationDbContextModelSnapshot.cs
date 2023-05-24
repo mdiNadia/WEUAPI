@@ -1063,20 +1063,32 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
                 {
-                    b.Property<int>("ObserverId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AdvertiseId")
                         .HasColumnType("int");
 
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CheckedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsChecked")
+                        .HasColumnType("bit");
+
                     b.Property<int>("NotificationType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ObserverId")
                         .HasColumnType("int");
 
                     b.Property<int?>("TargetId")
@@ -1086,7 +1098,9 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("ObserverId", "Id");
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObserverId");
 
                     b.HasIndex("TargetId");
 

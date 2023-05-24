@@ -16,8 +16,11 @@ namespace Domain.Entities
         public int? TargetId { get; set; }
         public Profile? Target { get; set; }
         public NotificationType NotificationType { get; set; }
+        public int? AdvertiseId { get; set; }//confirmed Advertise ID
         public string Title { get; set; }
         public string Body { get; set; }
+        public bool IsChecked { get;set; }
+        public DateTime CheckedDate { get; set; }
 
     }
 }

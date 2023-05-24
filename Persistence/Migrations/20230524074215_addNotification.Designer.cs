@@ -12,8 +12,8 @@ using Persistence.Contexts;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230521082741_NotificationEntity")]
-    partial class NotificationEntity
+    [Migration("20230524074215_addNotification")]
+    partial class addNotification
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -756,12 +756,10 @@ namespace Persistence.Migrations
 
                     b.Property<string>("Iso")
                         .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("nvarchar(2)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Iso3")
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Latitude")
                         .HasColumnType("int");
@@ -771,8 +769,7 @@ namespace Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("NumCode")
                         .HasColumnType("int");
@@ -1069,22 +1066,44 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
                 {
-                    b.Property<int>("ObserverId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("TargetId")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AdvertiseId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CheckedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsSeen")
+                    b.Property<bool>("IsChecked")
                         .HasColumnType("bit");
 
                     b.Property<int>("NotificationType")
                         .HasColumnType("int");
 
-                    b.HasKey("ObserverId", "TargetId");
+                    b.Property<int>("ObserverId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObserverId");
 
                     b.HasIndex("TargetId");
 
@@ -1336,6 +1355,7 @@ namespace Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("IconId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -2168,9 +2188,7 @@ namespace Persistence.Migrations
                 {
                     b.HasOne("Domain.Entities.FileType", "FileType")
                         .WithMany("Attachments")
-                        .HasForeignKey("FileTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FileTypeId");
 
                     b.Navigation("FileType");
                 });
@@ -2385,8 +2403,7 @@ namespace Persistence.Migrations
                     b.HasOne("Domain.Entities.Profile", "Target")
                         .WithMany("Notified")
                         .HasForeignKey("TargetId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Observer");
 

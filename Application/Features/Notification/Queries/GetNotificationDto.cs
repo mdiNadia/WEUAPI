@@ -15,7 +15,14 @@ namespace Application.Features.Notification.Queries
         public NotificationType NotificationType { get; set; }
         public string Title { get; set; }
         public string Body { get; set; }
-        public GetNameAndId Observer { get; set; }
-        public GetNameAndId? Targeter { get; set; }
+        public string? AdvertiseImage { get; set; }
+        public int? AdvertiseId { get; set; }
+        public string ObserverImage { get; set; }
+        public int ObserverId { get; set; }
+        public string ObserverUserName { get; set; }
+
+        public string? TargeterImage { get; set; }
+        public int? TargeterId { get; set; }
+        public string? TargeterUserName { get; set; }
     }
 }

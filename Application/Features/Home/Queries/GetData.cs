@@ -68,8 +68,6 @@ namespace Application.Features.Profile.Queries
                                       Name = s.Attachment.FileName,
                                       FileType = 0,
                                   }).ToList(),
-
-
                           })
                          .OrderByDescending(c => c.CreationDate)
                          .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)

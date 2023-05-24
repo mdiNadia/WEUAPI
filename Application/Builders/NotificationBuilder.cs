@@ -14,7 +14,7 @@ namespace Application.Builders
         public void Configure(EntityTypeBuilder<Notification> builder)
         {
 
-            builder.HasKey(k => new { k.ObserverId , k.Id });
+            builder.HasKey(k => new { k.Id });
             builder.HasOne(o => o.Target)
               .WithMany(f => f.Notified)
               .HasForeignKey(o => o.TargetId)
@@ -25,7 +25,7 @@ namespace Application.Builders
                 .HasForeignKey(o => o.ObserverId)
                 .IsRequired(true)
                 .OnDelete(DeleteBehavior.Restrict);
-           
+
 
         }
     }

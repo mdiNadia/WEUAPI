@@ -4,6 +4,7 @@ using Application.Interfaces;
 using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Immutable;
 using System.Net;
 
 namespace Application.Features.Notification.Queries
@@ -28,9 +29,12 @@ namespace Application.Features.Notification.Queries
 
                 try
                 {
+                    
                     var model = await _unitOfWork.Notifications.GetQueryList()
                   .AsNoTracking()
-                  .Include(c => c.Observer).Include(c => c.Target)
+                  //.Include(c => c.Observer)
+                  //.ThenInclude(c=>c.Avatar)
+                  .Include(c => c.Target).ThenInclude(c=>c.Avatar)
                       .Select(c => new GetNotificationDto()
                       {
                           Id = c.Id,
@@ -38,22 +42,30 @@ namespace Application.Features.Notification.Queries
                           Body = c.Body,
                           NotificationType = c.NotificationType,
                           CreationDate = c.CreationDate,
-                          Targeter = c.Target == null ? null : new Dtos.Common.GetNameAndId
-                          {
-                              Id = (int)c.TargetId,
-                              Name = c.Target.Name
-                          },
-                          Observer = new Dtos.Common.GetNameAndId
-                          {
-                              Id = c.ObserverId,
-                              Name = c.Observer.Name
-                          }
+                          AdvertiseId = c.AdvertiseId,
+                          ObserverId = c.ObserverId,
+                          ObserverUserName = c.Observer.Username,
+                          ObserverImage = c.Observer.Avatar.FileName,
+
+                          TargeterId = c.TargetId,
+                          TargeterUserName = c.Target.Username,
+                          TargeterImage = c.Target.Avatar.FileName,
 
                       })
                       .OrderByDescending(c => c.CreationDate)
                       .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
                       .Take(query._filter.PageSize)
                       .ToListAsync();
+                    var advertise = _unitOfWork.ConfirmedResults.GetQueryList()
+                        .Include(c => c.ConfirmedResultAttachments).ThenInclude(c => c.Attachment)
+                        .Where(c=>c.IsActive);
+                    model.ForEach(m =>
+                    {
+                        var f = advertise
+                        .Where(c => c.ConfirmedResultAttachments.Select(o => o.ConfirmResultId == m.AdvertiseId).First())
+                        .Select(c => c.ConfirmedResultAttachments.First());
+                        m.AdvertiseImage = f.Select(e=>e.Attachment.FileName).FirstOrDefault();
+                    });
                     return model;
                 }
                 catch (Exception)
