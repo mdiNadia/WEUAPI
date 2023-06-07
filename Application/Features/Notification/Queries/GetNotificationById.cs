@@ -25,7 +25,7 @@ namespace Application.Features.Notification.Queries
 
                 var model = await _unitOfWork.Notifications.GetQueryList()
                     .Where(c => c.Id == query.Id)
-                    //.Include(c => c.Observer).ThenInclude(c => c.Avatar)
+                    .Include(c => c.Observer).ThenInclude(c => c.Avatar)
                     .Include(c => c.Target).ThenInclude(c => c.Avatar)
                     .Select(c => new GetNotificationDto()
                     {
