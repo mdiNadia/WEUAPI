@@ -1,23 +1,13 @@
-﻿
-
-using Application.Interfaces;
-using Application.Services.UserAccessor;
-using Azure;
-using Domain.Entities;
-using MediatR;
-using RestSharp;
-using RestSharp.Authenticators;
-using System.Drawing;
-using System.Threading;
+﻿using RestSharp;
 
 namespace Application.Services.Sms
 {
     public class SmsSender : ISmsSender
     {
-     
+
         public SmsSender()
         {
-           
+
         }
         public async Task<bool> SendVertificateCode(string receptor, string sender, string text)
         {

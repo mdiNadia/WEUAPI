@@ -17,13 +17,11 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
-using ZXing.QrCode.Internal;
 
 public class UserAccessor : IUserAccessor
 {
@@ -87,7 +85,7 @@ public class UserAccessor : IUserAccessor
         user.PhoneNumber = model.PhoneNumber;
         user.FirstName = model.FirstName ?? "FirstName";
         user.LastName = model.LastName ?? "LastName";
-        user.CreationDate =DateTime.Now;
+        user.CreationDate = DateTime.Now;
         user.NumCode = model.NumCode;
 
         //var userWithSameEmail = await _userManager.FindByEmailAsync(model.Email);
@@ -126,7 +124,7 @@ public class UserAccessor : IUserAccessor
                         bool verifyCode = await CheckVerifyCode(model.Code);
                         if (verifyCode)
                         {
-                            var token = await GetTokenAsync(new TokenRequestModel() { Username = model.Username, Password = model.Password});
+                            var token = await GetTokenAsync(new TokenRequestModel() { Username = model.Username, Password = model.Password });
                             dbContextTransaction.Commit();
                             return new RegisterResult()
                             {
@@ -197,7 +195,7 @@ public class UserAccessor : IUserAccessor
             model.PhoneNumber = verifyModel.Number;
             model.CreationDate = DateTime.Now;
             model.ExpireDate = model.CreationDate.AddMinutes(2);
-      
+
             _context.SendSmsCodes.Add(model);
             await _context.SaveChangesAsync();
             return true;
