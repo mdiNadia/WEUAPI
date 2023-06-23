@@ -1,7 +1,12 @@
 ﻿using Application.Features.AdCategory.Queries;
 using Application.Features.Language.Commands;
 using Application.Features.Language.Queries;
+using Application.Services.FastReportPage;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Xml.Linq;
 using WebApi.Filter;
 using WebApi.Helpers;
 using WebApi.Services;
@@ -28,7 +33,7 @@ namespace WebApi.Controllers.v1
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateLanguage command)
         {
-            var result = await Mediator.Send(command);
+             var result = await Mediator.Send(command);
             return Ok(result);
         }
         /// <summary>
@@ -36,14 +41,14 @@ namespace WebApi.Controllers.v1
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllLanguages(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountLanguages());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetLanguageDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllLanguages());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
+
         /// <summary>
         /// Gets Language Entity by Id.
         /// </summary>

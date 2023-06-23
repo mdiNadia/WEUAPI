@@ -6,27 +6,24 @@ using System.Net;
 
 namespace Application.Features.ProfileScore.Queries
 {
-    public class GetAllProfileScores : IRequest<IEnumerable<GetProfileScoreDto>>
+    public class GetAllProfileScores : IRequest<IQueryable<GetProfileScoreDto>>
     {
-        private readonly IPaginationFilter _filter;
-        public GetAllProfileScores(IPaginationFilter filter)
+        public GetAllProfileScores()
         {
-            _filter = filter;
         }
 
-        public class GetAllProfileScoresHandler : IRequestHandler<GetAllProfileScores, IEnumerable<GetProfileScoreDto>>
+        public class GetAllProfileScoresHandler : IRequestHandler<GetAllProfileScores, IQueryable<GetProfileScoreDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
             public GetAllProfileScoresHandler(IUnitOfWork unitOfWork)
             {
-
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetProfileScoreDto>> Handle(GetAllProfileScores query, CancellationToken cancellationToken)
+            public async Task<IQueryable<GetProfileScoreDto>> Handle(GetAllProfileScores query, CancellationToken cancellationToken)
             {
 
-                var profileScoreList = await _unitOfWork.ProfileScores.GetQueryList().AsNoTracking().Include(c => c.Icon)
+                var profileScoreList = _unitOfWork.ProfileScores.GetQueryList().AsNoTracking().Include(c => c.Icon)
                     .Select(c => new GetProfileScoreDto()
                     {
                         Id = c.Id,
@@ -37,16 +34,9 @@ namespace Application.Features.ProfileScore.Queries
                         IconName = c.Icon.FileName,
                         CreationDate = c.CreationDate,
                     })
-                    .OrderByDescending(c => c.CreationDate)
-                    .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
-                    .Take(query._filter.PageSize).ToListAsync();
-                if (profileScoreList == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "اطلاعات وجود ندارد!");
-                }
+                    .OrderByDescending(c => c.CreationDate);
+                
                 return profileScoreList;
-
-
             }
         }
     }

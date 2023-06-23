@@ -10,6 +10,7 @@
 
 
   <ItemGroup>
+    <PackageReference Include="DevExtreme.AspNet.Core" Version="21.2.6" />
     <PackageReference Include="CorePush" Version="3.1.1" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.32" />
     <PackageReference Include="Hangfire.Core" Version="1.7.32" />

@@ -1,5 +1,8 @@
-﻿using Application.Features.ProfileScore.Commands;
+﻿using Application.Features.Profile.Queries;
+using Application.Features.ProfileScore.Commands;
 using Application.Features.ProfileScore.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
 using WebApi.Helpers;
@@ -46,15 +49,15 @@ namespace WebApi.Controllers.v1
         /// Gets all ProfileScores.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        /// [HttpGet]
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllProfileScores(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountProfileScores());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetProfileScoreDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllProfileScores());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
+
         /// <summary>
         /// Gets ProfileScore Entity by Id.
         /// </summary>

@@ -1,8 +1,12 @@
 ﻿using Application.Features.ConfirmedResult.Queries;
+using Application.Features.Language.Queries;
 using Application.Features.Profile.Commands;
 using Application.Features.Profile.Dtos;
 using Application.Features.Profile.Queries;
+using Application.Features.ProfileScore.Queries;
 using Application.Features.Wallet.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
 using WebApi.Helpers;
@@ -46,15 +50,16 @@ namespace WebApi.Controllers.v1
         /// Gets all Profils.
         /// </summary>
         /// <returns></returns>
+        /// 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllProfiles(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountProfiles());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetProfileDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllProfileScores());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
+
         /// <summary>
         /// Gets Profile Entity by Id.
         /// </summary>

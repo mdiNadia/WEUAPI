@@ -26,7 +26,7 @@ namespace Application.Features.AppSetting.Queries
                        CreationDate = c.CreationDate,
                        AppFee = c.AppFee,
                        Value = c.Value,
-                       MinWeuPerVisit = c.MinValuePerVisit,
+                       MinValuePerVisit = c.MinValuePerVisit,
                        MinBoostAmount = c.MinBoostAmount,
                        MinView = c.MinView
                    }).FirstOrDefaultAsync();

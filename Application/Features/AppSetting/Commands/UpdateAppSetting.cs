@@ -9,7 +9,7 @@ namespace Application.Features.AppSetting.Commands
     {
         public int Id { get; set; }
         public decimal MinBoostAmount { get; set; }
-        public int MinWeuPerVisit { get; set; }
+        public int MinValuePerVisit { get; set; }
         public int MinView { get; set; }
         public decimal Value { get;set; }//چند دهم یک سکه
         public int AppFee { get; set; }
@@ -31,7 +31,7 @@ namespace Application.Features.AppSetting.Commands
                 }
                 else
                 {
-                    boostSetting.MinValuePerVisit = command.MinWeuPerVisit;
+                    boostSetting.MinValuePerVisit = command.MinValuePerVisit;
                     boostSetting.MinBoostAmount = command.MinBoostAmount;
                     boostSetting.MinView = command.MinView;
                     boostSetting.Value = command.Value;

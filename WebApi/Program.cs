@@ -258,7 +258,7 @@ app.UseCors(x => x.AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
     .SetIsOriginAllowed(origin => true)); // allow any origin
-    //.WithOrigins("http://192.168.100.100", "http://192.168.100.100:8080", "https://localhost:7107", "https://localhost:7155", "https://localhost:7008"));
+                                          //.WithOrigins("http://192.168.100.100", "http://192.168.100.100:8080", "https://localhost:7107", "https://localhost:7155", "https://localhost:7008","https://localhost:3000"));
 app.UseAuthentication();
 app.UseResponseCaching();
 app.UseAuthorization();
