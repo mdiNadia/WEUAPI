@@ -1,8 +1,9 @@
 ﻿using Application.Features.Country.Commands;
 using Application.Features.Country.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
 
@@ -31,15 +32,14 @@ namespace WebApi.Controllers.v1
         /// Gets all Countries with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        /// [HttpGet]
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllCountries(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountCountries());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetCountryDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllCountries());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
         /// <summary>
         /// Gets Country Entity by Id.
         /// </summary>

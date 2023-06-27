@@ -1,9 +1,6 @@
-﻿using Application.Errors;
-using Application.Interfaces;
-using Mapster;
+﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.Language.Queries
 {
@@ -34,11 +31,9 @@ namespace Application.Features.Language.Queries
                         IconId = c.IconId,
                         IconName = c.Icon.FileName,
                         CreationDate = c.CreationDate,
-                    })
-                    .OrderByDescending(c => c.CreationDate)
-                    .AsQueryable();
+                    });
                 return languageList;
-                
+
             }
         }
     }
