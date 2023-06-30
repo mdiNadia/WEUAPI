@@ -1,9 +1,10 @@
 ﻿using Application.Features.City.Commands;
 using Application.Features.City.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
 
@@ -32,14 +33,11 @@ namespace WebApi.Controllers.v1
         /// Gets all Cities with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllCities(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountCities());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetCityDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllCities());
+            return DataSourceLoader.Load(result, loadOptions);
         }
         /// <summary>
         /// Gets City Entity by Id.
@@ -98,6 +96,14 @@ namespace WebApi.Controllers.v1
         public async Task<IActionResult> GetAllCities()
         {
             return Ok(await Mediator.Send(new GetAll()));
+        }
+
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetLookup")]
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
+        {
+            var responseResult = await Mediator.Send(new GetAll());
+            return DataSourceLoader.Load(responseResult, loadOptions);
         }
     }
 }

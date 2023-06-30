@@ -1,16 +1,14 @@
-﻿using Application.Dtos.Common;
-using Application.Errors;
+﻿using Application.Dtos.Lookup;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.Province.Queries
 {
-    public class Provinces : IRequest<List<GetNameAndId>>
+    public class Provinces : IRequest<List<LookupDto>>
     {
         public int Id { get; set; }
-        public class ProvincesHandler : IRequestHandler<Provinces, List<GetNameAndId>>
+        public class ProvincesHandler : IRequestHandler<Provinces, List<LookupDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -18,27 +16,19 @@ namespace Application.Features.Province.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<List<GetNameAndId>> Handle(Provinces query, CancellationToken cancellationToken)
+            public async Task<List<LookupDto>> Handle(Provinces query, CancellationToken cancellationToken)
             {
 
                 var Provinces = await _unitOfWork.Provinces
                     .GetQueryList().Where(c => c.CountryId == query.Id)
                     .AsNoTracking()
-                    .Select(c => new GetNameAndId
+                    .Select(c => new LookupDto
                     {
                         Id = c.Id,
-                        Name = c.Name,
-                        CreationDate = c.CreationDate
+                        Title = c.Name,
                     })
-                    .OrderByDescending(c => c.CreationDate)
                     .ToListAsync();
-                if (Provinces == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "طلاعات وجود ندارد!");
-                }
                 return Provinces;
-
-
             }
         }
     }

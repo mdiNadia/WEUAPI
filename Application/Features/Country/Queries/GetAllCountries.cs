@@ -29,6 +29,7 @@ namespace Application.Features.Country.Queries
                     IsActive = c.IsActive,
                     Iso = c.Iso,
                     NumCode = c.NumCode,
+                    PhoneCode = c.PhoneCode,
                     CreationDate = c.CreationDate,
                 });
                 return countryList;

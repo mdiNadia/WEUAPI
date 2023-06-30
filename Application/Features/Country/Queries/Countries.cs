@@ -1,16 +1,14 @@
-﻿using Application.Dtos.Common;
-using Application.Errors;
+﻿using Application.Dtos.Lookup;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.Country.Queries
 {
-    public class Countries : IRequest<List<GetNameAndId>>
+    public class Countries : IRequest<IQueryable<LookupDto>>
     {
 
-        public class CountriesHandler : IRequestHandler<Countries, List<GetNameAndId>>
+        public class CountriesHandler : IRequestHandler<Countries, IQueryable<LookupDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -18,26 +16,20 @@ namespace Application.Features.Country.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<List<GetNameAndId>> Handle(Countries query, CancellationToken cancellationToken)
+            public async Task<IQueryable<LookupDto>> Handle(Countries query, CancellationToken cancellationToken)
             {
 
-                var countries = await _unitOfWork.Countries
+                var countries = _unitOfWork.Countries
                     .GetQueryList()
                     .AsNoTracking()
-                    .Select(c => new GetNameAndId
+                    .Select(c => new LookupDto
                     {
                         Id = c.Id,
-                        Name = c.Name,
-                        CreationDate = c.CreationDate,
-                    })
-                    .OrderByDescending(c => c.CreationDate)
-                    .ToListAsync();
-                if (countries == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "طلاعات وجود ندارد!");
-                }
-                return countries;
+                        Title = c.Name,
+                        //CreationDate = c.CreationDate,
+                    });
 
+                return countries;
 
             }
         }

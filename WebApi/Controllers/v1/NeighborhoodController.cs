@@ -1,9 +1,9 @@
 ﻿using Application.Features.Neighbourhood.Commands;
 using Application.Features.Neighbourhood.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
 
@@ -32,15 +32,13 @@ namespace WebApi.Controllers.v1
         /// Gets all Neighborhoods with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllNeighbourhoods(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountNeighbourhoods());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetNeighbourhoodDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllNeighbourhoods());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
         /// <summary>
         /// Gets Neighborhood Entity by Id.
         /// </summary>

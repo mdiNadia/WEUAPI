@@ -1,8 +1,9 @@
 ﻿using Application.Features.Province.Commands;
 using Application.Features.Province.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
 
@@ -31,15 +32,13 @@ namespace WebApi.Controllers.v1
         /// Gets all Countries with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllProvinces(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountProvinces());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetProvinceDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllProvinces());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
         /// <summary>
         /// Gets Province Entity by Id.
         /// </summary>
@@ -93,10 +92,12 @@ namespace WebApi.Controllers.v1
         /// Gets All Provinces Without Paging
         /// </summary>
         /// <returns></returns>
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetAllProvinces()
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetLookup")]
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
         {
-            return Ok(await Mediator.Send(new GetAll()));
+            var responseResult = await Mediator.Send(new GetAll());
+            return DataSourceLoader.Load(responseResult, loadOptions);
         }
     }
 }

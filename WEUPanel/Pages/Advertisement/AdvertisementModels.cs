@@ -16,7 +16,6 @@ namespace WEUPanel.Pages.Advertisement
             public string Text { get; set; }
             public string CreationDate { get; set; }
             public string? StartDate { get; set; }
-
             public string? ExpireDate { get; set; }
             public int AdvertiserId { get; set; }
             public List<GetNameAndId> Categories { get; set; }
@@ -94,7 +93,7 @@ namespace WEUPanel.Pages.Advertisement
         {
             public int NumberOfadViews { get; set; }
             public decimal PricePerVisit { get; set; }
-            
+
         }
 
 

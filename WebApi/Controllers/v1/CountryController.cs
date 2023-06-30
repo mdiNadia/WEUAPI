@@ -2,6 +2,7 @@
 using Application.Features.Country.Queries;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
 using WebApi.Services;
@@ -83,13 +84,14 @@ namespace WebApi.Controllers.v1
         /// Gets All Countries Without Paging
         /// </summary>
         /// <returns></returns>
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetCountries()
-        {
-            var result = await Mediator.Send(new Countries());
-            return Ok(result);
-        }
 
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetLookup")]
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
+        {
+            var responseResult = await Mediator.Send(new Countries());
+            return DataSourceLoader.Load(responseResult, loadOptions);
+        }
         /// <summary>
         /// Gets All Country's provinces, cities and neighbourhoods
         /// </summary>

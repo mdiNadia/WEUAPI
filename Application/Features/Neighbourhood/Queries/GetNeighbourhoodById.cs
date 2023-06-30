@@ -1,8 +1,4 @@
-﻿
-
-using Application.Dtos.Common;
-
-using Application.Errors;
+﻿using Application.Errors;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -36,11 +32,7 @@ namespace Application.Features.Neighbourhood.Queries
                             Latitude = c.Latitude,
                             Longitude = c.Longitude,
                             IsActive = c.IsActive,
-                            City = new GetNameAndId
-                            {
-                                Id = c.CityId,
-                                Name = c.City.Name,
-                            },
+                            CityId = c.CityId,
                             CreationDate = c.CreationDate,
                         })
                         .FirstOrDefaultAsync();

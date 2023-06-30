@@ -1,16 +1,14 @@
-﻿using Application.Dtos.Common;
-using Application.Errors;
+﻿using Application.Dtos.Lookup;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.City.Queries
 {
-    public class GetAll : IRequest<List<GetNameAndId>>
+    public class GetAll : IRequest<IQueryable<LookupDto>>
     {
 
-        public class GetAllHandler : IRequestHandler<GetAll, List<GetNameAndId>>
+        public class GetAllHandler : IRequestHandler<GetAll, IQueryable<LookupDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -18,22 +16,16 @@ namespace Application.Features.City.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<List<GetNameAndId>> Handle(GetAll query, CancellationToken cancellationToken)
+            public async Task<IQueryable<LookupDto>> Handle(GetAll query, CancellationToken cancellationToken)
             {
-                var GetAll = await _unitOfWork.Cities
+                var GetAll = _unitOfWork.Cities
                     .GetQueryList()
                     .AsNoTracking()
-                    .Select(c => new GetNameAndId
+                    .Select(c => new LookupDto
                     {
                         Id = c.Id,
-                        Name = c.Name,
-                        CreationDate = c.CreationDate,
-                    })
-                    .OrderByDescending(c => c.CreationDate).ToListAsync();
-                if (GetAll == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "هیچ شهری یافت نشد!");
-                }
+                        Title = c.Name
+                    });
                 return GetAll;
             }
         }

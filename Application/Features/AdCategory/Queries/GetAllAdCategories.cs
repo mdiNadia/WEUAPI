@@ -1,19 +1,15 @@
-﻿using Application.Errors;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.AdCategory.Queries
 {
-    public class GetAllAdCategories : IRequest<IEnumerable<GetAdCategoryDto>>
+    public class GetAllAdCategories : IRequest<IQueryable<GetAdCategoryDto>>
     {
-        private readonly IPaginationFilter _filter;
-        public GetAllAdCategories(IPaginationFilter filter)
+        public GetAllAdCategories()
         {
-            _filter = filter;
         }
-        public class GetAllAdCategoriesHandler : IRequestHandler<GetAllAdCategories, IEnumerable<GetAdCategoryDto>>
+        public class GetAllAdCategoriesHandler : IRequestHandler<GetAllAdCategories, IQueryable<GetAdCategoryDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -21,9 +17,9 @@ namespace Application.Features.AdCategory.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetAdCategoryDto>> Handle(GetAllAdCategories query, CancellationToken cancellationToken)
+            public async Task<IQueryable<GetAdCategoryDto>> Handle(GetAllAdCategories query, CancellationToken cancellationToken)
             {
-                var adCategoryList = await _unitOfWork.AdCategories.GetQueryList()
+                var adCategoryList = _unitOfWork.AdCategories.GetQueryList()
                     .AsNoTracking()
                     .Include(c => c.Parent).ThenInclude(c => c.Children)
                     .Include(c => c.CategoryCost)
@@ -61,15 +57,8 @@ namespace Application.Features.AdCategory.Queries
                         }).ToList()
 
                     })
-                    .OrderByDescending(c => c.CreationDate)
-                    .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
-                    .Take(query._filter.PageSize)
-                    .ToListAsync();
+                    .OrderByDescending(c => c.CreationDate);
 
-                if (adCategoryList == null || adCategoryList.Count() == 0)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "Category doesn't exists!");
-                }
 
                 return adCategoryList;
             }

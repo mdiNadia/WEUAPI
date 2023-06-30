@@ -6,15 +6,13 @@ using System.Net;
 
 namespace Application.Features.Neighbourhood.Queries
 {
-    public class GetAllNeighbourhoods : IRequest<IEnumerable<GetNeighbourhoodDto>>
+    public class GetAllNeighbourhoods : IRequest<IQueryable<GetNeighbourhoodDto>>
     {
-        private readonly IPaginationFilter _filter;
-        public GetAllNeighbourhoods(IPaginationFilter filter)
+        public GetAllNeighbourhoods()
         {
-            _filter = filter;
         }
 
-        public class GetAllNeighbourhoodsHandler : IRequestHandler<GetAllNeighbourhoods, IEnumerable<GetNeighbourhoodDto>>
+        public class GetAllNeighbourhoodsHandler : IRequestHandler<GetAllNeighbourhoods, IQueryable<GetNeighbourhoodDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -23,11 +21,11 @@ namespace Application.Features.Neighbourhood.Queries
 
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetNeighbourhoodDto>> Handle(GetAllNeighbourhoods query, CancellationToken cancellationToken)
+            public async Task<IQueryable<GetNeighbourhoodDto>> Handle(GetAllNeighbourhoods query, CancellationToken cancellationToken)
             {
                 try
                 {
-                    var cities = await _unitOfWork.Neighborhoods.GetQueryList()
+                    var cities = _unitOfWork.Neighborhoods.GetQueryList()
                         .AsNoTracking()
                         .Include(c => c.City)
                         .Select(c => new GetNeighbourhoodDto
@@ -37,23 +35,9 @@ namespace Application.Features.Neighbourhood.Queries
                             Latitude = c.Latitude,
                             Longitude = c.Longitude,
                             IsActive = c.IsActive,
-
-                            City = new Dtos.Common.GetNameAndId
-                            {
-                                Id = c.CityId,
-                                Name = c.City.Name,
-                                CreationDate = c.CreationDate,
-                            },
+                            CityId = c.CityId,
                             CreationDate = c.CreationDate
-                        })
-                        .OrderByDescending(c => c.CreationDate)
-                        .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
-                        .Take(query._filter.PageSize)
-                        .ToListAsync();
-                    if (cities == null)
-                    {
-                        throw new RestException(HttpStatusCode.BadRequest, "اطلاعات وجود ندارد!");
-                    }
+                        });
                     return cities;
                 }
                 catch (Exception)

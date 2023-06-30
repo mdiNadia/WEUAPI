@@ -8,6 +8,7 @@ namespace Application.Features.City.Queries
         public string Name { get; init; }
         public decimal Longitude { get; init; }
         public decimal Latitude { get; init; }
+        public int ProvinceId { get; set; }
         public GetNameAndId Province { get; init; }
         public bool IsActive { get; init; }
         public DateTime CreationDate { get; init; }

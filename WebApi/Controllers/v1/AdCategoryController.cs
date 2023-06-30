@@ -1,11 +1,10 @@
 ﻿using Application.Features.AdCategory.Commands;
 using Application.Features.AdCategory.Queries;
 using Application.Services.UserAccessor;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
-using System.Net;
-using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.SharedResources;
 using WebApi.Wrappers;
@@ -47,15 +46,11 @@ namespace WebApi.Controllers.v1
         /// Gets all AdCategories with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        [ProducesResponseType(typeof(PagedResponse<IEnumerable<GetAdCategoryDto>>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllAdCategories(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountAdCategories());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetAdCategoryDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllAdCategories());
+            return DataSourceLoader.Load(result, loadOptions);
         }
         /// <summary>
         /// Gets AdCategory Entity by Id.
