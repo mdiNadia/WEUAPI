@@ -1,8 +1,8 @@
 ﻿using Application.Features.User.Commands;
 using Application.Features.User.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
 
@@ -32,16 +32,14 @@ namespace WebApi.Controllers.v1
         /// Gets all Users with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("GetAll")]
         [ResponseCache(VaryByHeader = "GetAllUser", Duration = 60)]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllUsers(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountUsers());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetUserDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllUsers());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
         /// <summary>
         /// Gets User Entity by Id.
         /// </summary>

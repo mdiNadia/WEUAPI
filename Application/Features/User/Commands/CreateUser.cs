@@ -31,12 +31,13 @@ namespace Application.Features.User.Commands
 
                 RegisterModel register = new RegisterModel();
                 register.PhoneNumber = command.PhoneNumber;
+                register.NumCode = "+98";
                 register.Username = command.Username;
                 register.Email = command.Email;
                 register.FirstName = command.FirstName;
                 register.LastName = command.LastName;
                 register.Password = command.Password;
-               
+
                 register.Role = command.Role;
                 try
                 {

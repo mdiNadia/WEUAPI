@@ -3,6 +3,7 @@ using Application.Features.AdCategory.Queries;
 using Application.Services.UserAccessor;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using WebApi.Services;
@@ -88,15 +89,14 @@ namespace WebApi.Controllers.v1
             }
             return Ok(await Mediator.Send(command));
         }
-        /// <summary>
-        /// Gets All Categories Without Paging
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetCategories()
+
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetLookup")]
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
         {
-            var result = await Mediator.Send(new Categories());
-            return Ok(result);
+            var responseResult = await Mediator.Send(new Categories());
+            return DataSourceLoader.Load(responseResult, loadOptions);
         }
+
     }
 }

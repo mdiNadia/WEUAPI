@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Net;
 using System.Security.Claims;
 
@@ -145,6 +144,7 @@ public class UserAccessor : IUserAccessor
                         //End sending code scenario
 
                     }
+
                     dbContextTransaction.Rollback();
                     return new RegisterResult()
                     {

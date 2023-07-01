@@ -1,19 +1,16 @@
-﻿using Application.Errors;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.User.Queries
 {
-    public class GetAllUsers : IRequest<IEnumerable<GetUserDto>>
+    public class GetAllUsers : IRequest<IQueryable<GetUserDto>>
     {
-        private readonly IPaginationFilter _filter;
-        public GetAllUsers(IPaginationFilter filter)
+        public GetAllUsers()
         {
-            _filter = filter;
+
         }
-        public class GetAllUsersHandler : IRequestHandler<GetAllUsers, IEnumerable<GetUserDto>>
+        public class GetAllUsersHandler : IRequestHandler<GetAllUsers, IQueryable<GetUserDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -21,14 +18,11 @@ namespace Application.Features.User.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetUserDto>> Handle(GetAllUsers query, CancellationToken cancellationToken)
+            public async Task<IQueryable<GetUserDto>> Handle(GetAllUsers query, CancellationToken cancellationToken)
             {
-
-                var UserList = await _unitOfWork.Users.GetQueryList().AsNoTracking()
+                var userList = _unitOfWork.Users.GetQueryList().AsNoTracking()
                     .Include(c => c.Profiles)
                     .OrderByDescending(c => c.CreationDate)
-                    .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
-                    .Take(query._filter.PageSize)
                     .Select(c => new GetUserDto()
                     {
                         Id = c.Id,
@@ -40,14 +34,9 @@ namespace Application.Features.User.Queries
                         CreationDate = c.CreationDate,
                         ProfileId = c.Profiles.Select(c => c.Id).FirstOrDefault(),
                         ProfileUsername = c.Profiles.Select(c => c.Username).FirstOrDefault(),
-                    }).ToListAsync();
-                if (UserList == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "اطلاعات وجود ندارد!");
-                }
-                return UserList.AsReadOnly();
+                    });
 
-
+                return userList;
             }
         }
     }
