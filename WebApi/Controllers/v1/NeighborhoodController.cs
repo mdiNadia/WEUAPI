@@ -2,6 +2,7 @@
 using Application.Features.Neighbourhood.Queries;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WebApi.Services;
@@ -95,6 +96,14 @@ namespace WebApi.Controllers.v1
         public async Task<IActionResult> GetAllNeighborhoods()
         {
             return Ok(await Mediator.Send(new Application.Features.Neighborhood.Queries.GetAll()));
+        }
+
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetLookup")]
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
+        {
+            var responseResult = await Mediator.Send(new Application.Features.Neighborhood.Queries.GetAll());
+            return DataSourceLoader.Load(responseResult, loadOptions);
         }
     }
 }

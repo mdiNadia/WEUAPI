@@ -9,9 +9,9 @@ namespace Domain.Entities
         [Display(Name = "نام")]
 
         public string Name { get; set; }
+
         [Required(ErrorMessage = "توضیحات لازم است")]
         [Display(Name = "توضیحات")]
-
         public string Description { get; set; }
 
         public int? ParentId { get; set; }

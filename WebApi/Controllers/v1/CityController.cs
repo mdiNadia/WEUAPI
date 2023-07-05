@@ -100,7 +100,7 @@ namespace WebApi.Controllers.v1
 
         [HttpGet, AllowAnonymousAttribute]
         [Route("GetLookup")]
-        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions,)
         {
             var responseResult = await Mediator.Send(new GetAll());
             return DataSourceLoader.Load(responseResult, loadOptions);

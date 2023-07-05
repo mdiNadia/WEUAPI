@@ -31,7 +31,7 @@ namespace Application.Features.Advertising.Commands
         [Required]
         public string ExpireDate { get; set; }
         [Required]
-        public List<int> AdCategoryIds { get; set; }
+        public int AdCategoryId { get; set; }
         [Required]
         public List<IFormFile> AdvertisingFiles { get; set; }
         [Required]
@@ -334,8 +334,7 @@ namespace Application.Features.Advertising.Commands
                     ////////////////////////پایان عملیات افزودن فایل ها به جدول واسط//////////////
                     ////////////////////////عملیات افزودن دسته‌بندی‌ها به جدول واسط////////////////
                     List<AdCategoryAdvertising> adCat = new List<AdCategoryAdvertising>();
-                    foreach (var item in command.AdCategoryIds)
-                        adCat.Add(new AdCategoryAdvertising { AdvertisingId = advertise.Id, AdCategoryId = item });
+                   adCat.Add(new AdCategoryAdvertising { AdvertisingId = advertise.Id, AdCategoryId = command.AdCategoryId });
                     _unitOfWork.AdCategoryAdvertisings.InsertRange(adCat);
                     try
                     {
