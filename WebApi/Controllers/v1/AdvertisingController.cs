@@ -4,6 +4,7 @@ using Application.Features.Advertising.Commands;
 using Application.Features.Advertising.Queries;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Services;
 using WebApi.Wrappers;
@@ -11,7 +12,7 @@ using WebApi.Wrappers;
 namespace WebApi.Controllers.v1
 {
     [ApiVersion("1.0")]
-    //[Authorize]
+    [Authorize]
     public class AdvertisingController : BaseApiController
     {
         private readonly IUriService _uriService;
@@ -25,7 +26,7 @@ namespace WebApi.Controllers.v1
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost("Create")]
         public async Task<IActionResult> Create([FromForm] CreateAdvertising command)
         {
             return Ok(await Mediator.Send(command));

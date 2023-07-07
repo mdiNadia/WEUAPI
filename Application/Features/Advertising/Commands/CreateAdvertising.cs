@@ -20,6 +20,7 @@ namespace Application.Features.Advertising.Commands
 
     public class CreateAdvertising : IRequest<string>
     {
+
         [Required]
         public string Name { get; set; }
         [Required]
@@ -39,7 +40,8 @@ namespace Application.Features.Advertising.Commands
         public List<int>? AdProvinceIds { get; set; }
         public List<int>? AdCityIds { get; set; }
         public List<int>? AdNeighborhoodIds { get; set; }
-        public RequestBoostDto? RequestBoostDto { get; set; }
+        public int? NumberOfadViews { get; set; }
+        public int? ValuePerVisit { get; set; }
 
         public class CreateAdvertisingHandler : IRequestHandler<CreateAdvertising, string>
         {
@@ -92,46 +94,46 @@ namespace Application.Features.Advertising.Commands
                     advertise.QrCode = saveToDatabase;
                     //////////////////////////////
                     _unitOfWork.Advertisings.Insert(advertise);
-                    try
-                    {
-                        await _unitOfWork.CompleteAsync();
-                    }
-                    catch (Exception)
-                    {
-                        dbContextTransaction.Rollback();
-                        throw new Exception("خطا در ذخیره اطلاعات");
-                    }
+                    //try
+                    //{
+                    //    await _unitOfWork.CompleteAsync();
+                    //}
+                    //catch (Exception)
+                    //{
+                    //    dbContextTransaction.Rollback();
+                    //    throw new Exception("خطا در ذخیره اطلاعات");
+                    //}
                     ////////////////////////افزودن شتابدهی به جدول واسط///////////////////
-                    if (command.RequestBoostDto != null)
+                    if (command.NumberOfadViews.HasValue  || command.ValuePerVisit.HasValue)
                     {
                         var boostSetting = await _unitOfWork.AppSettings
                       .GetQueryList().AsNoTracking().FirstOrDefaultAsync();
                         if (boostSetting == null) throw new RestException(HttpStatusCode.BadRequest, "اطلاعات تنظیمات شتابدهی وجود ندارد!!");
                         ; 
                         Domain.Entities.Boost boost = new Domain.Entities.Boost();
-                        boost.NumberOfadViews = command.RequestBoostDto.NumberOfadViews < boostSetting.MinView
+                        boost.NumberOfadViews = command.NumberOfadViews.Value < boostSetting.MinView
                             ? throw new RestException(HttpStatusCode.BadRequest, "تعداد بازدید کننده کمتر از تعداد تعریف شده است!!")
-                            : command.RequestBoostDto.NumberOfadViews;
+                            : command.NumberOfadViews.Value;
                         //boost.Debit = command.RequestBoostDto.Debit < boostSetting.MinBoostAmount
                         //    ? throw new RestException(HttpStatusCode.BadRequest, "مبلغ شتابدهی کمتر از مقدار تعریف شده است!!")
                         //    : command.RequestBoostDto.Debit;
                         var value = boost.NumberOfadViews * boostSetting.MinValuePerVisit;
-                        boost.ValuePerVisit = command.RequestBoostDto.ValuePerVisit < boostSetting.MinValuePerVisit
+                        boost.ValuePerVisit = command.ValuePerVisit.Value < boostSetting.MinValuePerVisit
                             ? throw new RestException(HttpStatusCode.BadRequest, "مبلغ افزایش برای کاربر کمتر از مقدار تعریف شده است!!")
-                            : command.RequestBoostDto.ValuePerVisit;
-                        boost.Status = (BoostStatus)command.RequestBoostDto.Status;
+                            : command.ValuePerVisit.Value;
+                        boost.Status = BoostStatus.free;
                         boost.Debit = value + (value*boostSetting.AppFee/100);
                         boost.Advertising = advertise;
                         _unitOfWork.Boosts.Insert(boost);
-                        try
-                        {
-                            await _unitOfWork.CompleteAsync();
-                        }
-                        catch (Exception)
-                        {
-                            dbContextTransaction.Rollback();
-                            throw new Exception("خطا در ذخیره اطلاعات");
-                        }
+                        //try
+                        //{
+                        //    await _unitOfWork.CompleteAsync();
+                        //}
+                        //catch (Exception)
+                        //{
+                        //    dbContextTransaction.Rollback();
+                        //    throw new Exception("خطا در ذخیره اطلاعات");
+                        //}
                     }
                     ///////////////////////////پایان افزودن شتابدهی به جدول واسط///////////////////
                     ////////////////////////عملیات افزودن موقعیت ها به جدول واسط///////////////////
@@ -140,20 +142,20 @@ namespace Application.Features.Advertising.Commands
                     adCountries.Add(new AdCountry { Advertising = advertise, CountryId = command.AdCountryId });
 
                     _unitOfWork.AdCountries.InsertRange(adCountries);
-                    try
-                    {
-                        await _unitOfWork.CompleteAsync();
-                    }
-                    catch (Exception)
-                    {
-                        dbContextTransaction.Rollback();
-                        throw new Exception("خطا در ذخیره اطلاعات");
-                    }
+                    //try
+                    //{
+                    //    await _unitOfWork.CompleteAsync();
+                    //}
+                    //catch (Exception)
+                    //{
+                    //    dbContextTransaction.Rollback();
+                    //    throw new Exception("خطا در ذخیره اطلاعات");
+                    //}
 
                     if (command.AdProvinceIds != null)
                     {
                         List<AdProvince> adProvinces = new List<AdProvince>();
-                        if (command.AdProvinceIds.FirstOrDefault() == -1)
+                        if (command.AdProvinceIds.Count==0)
                         {
                             var provinces = await _unitOfWork.Provinces.GetQueryList()
                                   .Where(c => c.CountryId == command.AdCountryId)
@@ -172,21 +174,21 @@ namespace Application.Features.Advertising.Commands
                             }
                         }
                         _unitOfWork.AdProvinces.InsertRange(adProvinces);
-                        try
-                        {
-                            await _unitOfWork.CompleteAsync();
-                        }
-                        catch (Exception)
-                        {
-                            dbContextTransaction.Rollback();
-                            throw new Exception("خطا در ذخیره اطلاعات");
-                        }
+                        //try
+                        //{
+                        //    await _unitOfWork.CompleteAsync();
+                        //}
+                        //catch (Exception)
+                        //{
+                        //    dbContextTransaction.Rollback();
+                        //    throw new Exception("خطا در ذخیره اطلاعات");
+                        //}
                     }
 
                     if (command.AdCityIds != null)
                     {
                         List<AdCity> adCities = new List<AdCity>();
-                        if (command.AdCityIds.FirstOrDefault() == -1)
+                        if (command.AdCityIds.Count == 0)
                         {
                             var cities = await _unitOfWork.Cities.GetQueryList()
                                 .Where(c => command.AdProvinceIds.Contains(c.ProvinceId))
@@ -206,21 +208,21 @@ namespace Application.Features.Advertising.Commands
                         }
 
                         _unitOfWork.AdCities.InsertRange(adCities);
-                        try
-                        {
-                            await _unitOfWork.CompleteAsync();
-                        }
-                        catch (Exception)
-                        {
-                            dbContextTransaction.Rollback();
-                            throw new Exception("خطا در ذخیره اطلاعات");
-                        }
+                        //try
+                        //{
+                        //    await _unitOfWork.CompleteAsync();
+                        //}
+                        //catch (Exception)
+                        //{
+                        //    dbContextTransaction.Rollback();
+                        //    throw new Exception("خطا در ذخیره اطلاعات");
+                        //}
                     }
 
                     if (command.AdNeighborhoodIds != null)
                     {
                         List<AdNeighborhood> adNeighborhoods = new List<AdNeighborhood>();
-                        if (command.AdNeighborhoodIds.FirstOrDefault() == -1)
+                        if (command.AdNeighborhoodIds.Count == 0)
                         {
                             var neighborhoodIds = await _unitOfWork.Neighborhoods.GetQueryList()
                                 .Where(c => command.AdCityIds.Contains(c.CityId))
@@ -240,15 +242,15 @@ namespace Application.Features.Advertising.Commands
                         }
 
                         _unitOfWork.AdNeighborhoods.InsertRange(adNeighborhoods);
-                        try
-                        {
-                            await _unitOfWork.CompleteAsync();
-                        }
-                        catch (Exception)
-                        {
-                            dbContextTransaction.Rollback();
-                            throw new Exception("خطا در ذخیره اطلاعات");
-                        }
+                        //try
+                        //{
+                        //    await _unitOfWork.CompleteAsync();
+                        //}
+                        //catch (Exception)
+                        //{
+                        //    dbContextTransaction.Rollback();
+                        //    throw new Exception("خطا در ذخیره اطلاعات");
+                        //}
                     }
                     ////////////////////////عملیات افزودن موقعیت ها به جدول واسط//////////////////
                     ////////////////////////عملیات افزودن فایل ها به جدول واسط////////////////////
@@ -299,16 +301,16 @@ namespace Application.Features.Advertising.Commands
                                 advImage.AttachmentId = FileId;
 
                             }
-                            _unitOfWork.AdvertisingAttachments.Insert(advImage);
-                            try
-                            {
-                                await _unitOfWork.CompleteAsync();
-                            }
-                            catch (Exception)
-                            {
-                                dbContextTransaction.Rollback();
-                                throw new Exception("خطا در ذخیره اطلاعات");
-                            }
+                            //_unitOfWork.AdvertisingAttachments.Insert(advImage);
+                            //try
+                            //{
+                            //    await _unitOfWork.CompleteAsync();
+                            //}
+                            //catch (Exception)
+                            //{
+                            //    dbContextTransaction.Rollback();
+                            //    throw new Exception("خطا در ذخیره اطلاعات");
+                            //}
                         }
                         index--;
                     }
@@ -319,16 +321,16 @@ namespace Application.Features.Advertising.Commands
 
                         advImage.AdvertisingId = advertise.Id;
                         advImage.AttachmentId = FileId;
-                        _unitOfWork.AdvertisingAttachments.Insert(advImage);
-                        try
-                        {
-                            await _unitOfWork.CompleteAsync();
-                        }
-                        catch (Exception)
-                        {
-                            dbContextTransaction.Rollback();
-                            throw new Exception("خطا در ذخیره اطلاعات");
-                        }
+                        //_unitOfWork.AdvertisingAttachments.Insert(advImage);
+                        //try
+                        //{
+                        //    await _unitOfWork.CompleteAsync();
+                        //}
+                        //catch (Exception)
+                        //{
+                        //    dbContextTransaction.Rollback();
+                        //    throw new Exception("خطا در ذخیره اطلاعات");
+                        //}
                         index--;
                     }
                     ////////////////////////پایان عملیات افزودن فایل ها به جدول واسط//////////////

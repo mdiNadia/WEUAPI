@@ -99,10 +99,11 @@ namespace WebApi.Controllers.v1
         }
 
         [HttpGet, AllowAnonymousAttribute]
-        [Route("GetLookup")]
+        [Route("GetByProvinceIds")]
         public async Task<object> GetByProvinceIds(DataSourceLoadOptions loadOptions, string provincesIds)
         {
-            var responseResult = await Mediator.Send(new GetAll());
+            var ids = provincesIds.Split(',').Select(s => Convert.ToInt32(s)).ToList();
+            var responseResult = await Mediator.Send(new Cities { ids = ids });
             return DataSourceLoader.Load(responseResult, loadOptions);
         }
     }

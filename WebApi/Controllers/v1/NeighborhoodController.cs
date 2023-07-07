@@ -105,5 +105,14 @@ namespace WebApi.Controllers.v1
             var responseResult = await Mediator.Send(new Application.Features.Neighborhood.Queries.GetAll());
             return DataSourceLoader.Load(responseResult, loadOptions);
         }
+
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetByCityIds")]
+        public async Task<object> GetByCityIds(DataSourceLoadOptions loadOptions, string cityIds)
+        {
+            var ids = cityIds.Split(',').Select(s => Convert.ToInt32(s)).ToList();
+            var responseResult = await Mediator.Send(new Neighborhoods { Ids = ids });
+            return DataSourceLoader.Load(responseResult, loadOptions);
+        }
     }
 }
