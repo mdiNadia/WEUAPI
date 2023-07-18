@@ -31,7 +31,7 @@ app.UseAuthorization();
 app.UseCors(x => x.AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
-    .WithOrigins("http://192.168.100.100", "wss://192.168.100.100", "https://localhost:7107", "https://localhost:7155", "wss://localhost:7107"));
+    .WithOrigins("http://192.168.100.100", "wss://192.168.100.100", "https://localhost:7107", "https://localhost:7155", "https://localhost:3000", "wss://localhost:7107"));
 app.MapRazorPages();
 //app.MapHub<PresenceHub>("/presence");
 //app.MapHub<MessageHub>("/chat");

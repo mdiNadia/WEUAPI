@@ -30,6 +30,7 @@ namespace Application.Features.City.Queries
                         Latitude = c.Latitude,
                         Longitude = c.Longitude,
                         IsActive = c.IsActive,
+                        ProvinceId = c.ProvinceId,
                         Province = new Dtos.Common.GetNameAndId
                         {
                             Id = c.ProvinceId,

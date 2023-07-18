@@ -15,9 +15,8 @@ namespace Application.Features.Language.Commands
         public int Id { get; set; }
         public string Name { get; set; }
         public string ShortName { get; set; }
-        public int direction { get; set; }
+        public int Direction { get; set; }
         public IFormFile? IconFile { get; set; }
-        public string? Icon { get; set; }
         public bool IsDefault { get; set; }
 
         public class UpdateLanguageHandler : IRequestHandler<UpdateLanguage, int>
@@ -74,7 +73,7 @@ namespace Application.Features.Language.Commands
                     }
                     language.Name = command.Name ?? language.Name;
                     language.ShortName = command.ShortName ?? language.ShortName;
-                    language.Direction = (Direction)command.direction;
+                    language.Direction = (Direction)command.Direction;
                     if (command.IsDefault)
                     {
                         var isDefault = await _unitOfWork.Languages.GetQueryList()

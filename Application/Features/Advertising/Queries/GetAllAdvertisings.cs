@@ -1,21 +1,17 @@
 ﻿using Application.Dtos.Advertising;
 using Application.Dtos.Common;
-using Application.Errors;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.Advertising.Queries
 {
-    public class GetAllAdvertisings : IRequest<IEnumerable<GetAdvertisingDto>>
+    public class GetAllAdvertisings : IRequest<IQueryable<GetAdvertisingDto>>
     {
-        private readonly IPaginationFilter _filter;
-        public GetAllAdvertisings(IPaginationFilter filter)
+        public GetAllAdvertisings()
         {
-            _filter = filter;
         }
-        public class GetAllAdvertisingsHandler : IRequestHandler<GetAllAdvertisings, IEnumerable<GetAdvertisingDto>>
+        public class GetAllAdvertisingsHandler : IRequestHandler<GetAllAdvertisings, IQueryable<GetAdvertisingDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -23,12 +19,9 @@ namespace Application.Features.Advertising.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetAdvertisingDto>> Handle(GetAllAdvertisings query, CancellationToken cancellationToken)
-
+            public async Task<IQueryable<GetAdvertisingDto>> Handle(GetAllAdvertisings query, CancellationToken cancellationToken)
             {
-
-
-                var advertisingList = await _unitOfWork.Advertisings.GetQueryList()
+                var advertisingList = _unitOfWork.Advertisings.GetQueryList()
                     .AsNoTracking()
                     .Include(c => c.AdvertisingAttachments).ThenInclude(c => c.Attachment)
                     .Include(c => c.AdCategoryAdvertisings).ThenInclude(c => c.AdCategory)
@@ -57,15 +50,7 @@ namespace Application.Features.Advertising.Queries
                         FileType = 0,
                     }).ToList(),
                     })
-                    .OrderByDescending(c => c.CreationDate)
-                    .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
-                    .Take(query._filter.PageSize)
-                    .ToListAsync();
-                if (advertisingList == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "آگهی وجود ندارد!");
-
-                }
+                    .OrderByDescending(c => c.CreationDate);
 
                 return advertisingList;
 

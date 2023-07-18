@@ -31,12 +31,7 @@ namespace Application.Features.Province.Queries
                         Latitude = c.Latitude,
                         Longitude = c.Longitude,
                         IsActive = c.IsActive,
-                        Country = new Dtos.Common.GetNameAndId
-                        {
-                            Id = c.CountryId,
-                            Name = c.Country.Name,
-                            CreationDate = c.CreationDate,
-                        },
+                        CountryId = c.CountryId,
                         CreationDate = c.CreationDate
                     })
                     .OrderByDescending(c => c.CreationDate).FirstOrDefaultAsync();

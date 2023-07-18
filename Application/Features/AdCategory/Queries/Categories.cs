@@ -1,14 +1,13 @@
-﻿using Application.Errors;
+﻿using Application.Dtos.Lookup;
 using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.AdCategory.Queries
 {
-    public class Categories : IRequest<List<GetCatNameDto>>
+    public class Categories : IRequest<List<LookupDto>>
     {
-        public class CategoriesHandler : IRequestHandler<Categories, List<GetCatNameDto>>
+        public class CategoriesHandler : IRequestHandler<Categories, List<LookupDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -16,29 +15,21 @@ namespace Application.Features.AdCategory.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<List<GetCatNameDto>> Handle(Categories query, CancellationToken cancellationToken)
+            public async Task<List<LookupDto>> Handle(Categories query, CancellationToken cancellationToken)
             {
 
                 var adCategories = await _unitOfWork.AdCategories
                     .GetQueryList()
                     .Include(c => c.CategoryCost)
                     .AsNoTracking()
-                      .Select(c => new GetCatNameDto()
+                      .Select(c => new LookupDto()
                       {
                           Id = c.Id,
-                          Name = c.Name,
-                          Cost = c.CategoryCost.IsActive ? c.CategoryCost.Cost : 0,
-                          CreationDate = c.CreationDate
+                          Title = c.Name,
                       })
                     .ToListAsync();
-                if (adCategories == null)
-                {
-                    throw new RestException(HttpStatusCode.BadRequest, "Category doesn't exists!");
-                }
 
                 return adCategories;
-
-
             }
         }
     }

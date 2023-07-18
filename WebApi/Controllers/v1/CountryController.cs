@@ -1,8 +1,10 @@
 ﻿using Application.Features.Country.Commands;
 using Application.Features.Country.Queries;
+using DevExtreme.AspNet.Data;
+using DevExtreme.AspNet.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Filter;
-using WebApi.Helpers;
 using WebApi.Services;
 using WebApi.Wrappers;
 
@@ -31,15 +33,14 @@ namespace WebApi.Controllers.v1
         /// Gets all Countries with paging filter.
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationFilter filter)
+        /// [HttpGet]
+        [HttpGet("GetAll")]
+        public async Task<object> GetAll(DataSourceLoadOptions loadOptions)
         {
-            var route = Request.Path.Value;
-            var pagedData = await Mediator.Send(new GetAllCountries(filter));
-            var totalRecords = await Mediator.Send(new GetAllCountCountries());
-            var pagedReponse = PaginationHelper.CreatePagedReponse<GetCountryDto>(pagedData, filter, totalRecords, _uriService, route);
-            return Ok(pagedReponse);
+            var result = await Mediator.Send(new GetAllCountries());
+            return DataSourceLoader.Load(result, loadOptions);
         }
+
         /// <summary>
         /// Gets Country Entity by Id.
         /// </summary>
@@ -83,13 +84,14 @@ namespace WebApi.Controllers.v1
         /// Gets All Countries Without Paging
         /// </summary>
         /// <returns></returns>
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetCountries()
-        {
-            var result = await Mediator.Send(new Countries());
-            return Ok(result);
-        }
 
+        [HttpGet, AllowAnonymousAttribute]
+        [Route("GetLookup")]
+        public async Task<object> GetLookup(DataSourceLoadOptions loadOptions)
+        {
+            var responseResult = await Mediator.Send(new Countries());
+            return DataSourceLoader.Load(responseResult, loadOptions);
+        }
         /// <summary>
         /// Gets All Country's provinces, cities and neighbourhoods
         /// </summary>

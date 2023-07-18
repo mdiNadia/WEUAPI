@@ -1,20 +1,15 @@
-﻿using Application.Errors;
-using Application.Interfaces;
-using Mapster;
+﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Application.Features.Country.Queries
 {
-    public class GetAllCountries : IRequest<IEnumerable<GetCountryDto>>
+    public class GetAllCountries : IRequest<IQueryable<GetCountryDto>>
     {
-        private readonly IPaginationFilter _filter;
-        public GetAllCountries(IPaginationFilter filter)
+        public GetAllCountries()
         {
-            _filter = filter;
         }
-        public class GetAllCountriesHandler : IRequestHandler<GetAllCountries, IEnumerable<GetCountryDto>>
+        public class GetAllCountriesHandler : IRequestHandler<GetAllCountries, IQueryable<GetCountryDto>>
         {
             private readonly IUnitOfWork _unitOfWork;
 
@@ -22,25 +17,22 @@ namespace Application.Features.Country.Queries
             {
                 this._unitOfWork = unitOfWork;
             }
-            public async Task<IEnumerable<GetCountryDto>> Handle(GetAllCountries query, CancellationToken cancellationToken)
+            public async Task<IQueryable<GetCountryDto>> Handle(GetAllCountries query, CancellationToken cancellationToken)
             {
 
-                var countryList = await _unitOfWork.Countries.GetQueryList()
-                    .AsNoTracking()
-                    .Include(c => c.Currency)
-                    .OrderByDescending(c => c.CreationDate)
-                    .Skip((query._filter.PageNumber - 1) * query._filter.PageSize)
-                    .Take(query._filter.PageSize)
-                    .ToListAsync();
-                if (countryList == null)
+                var countryList = _unitOfWork.Countries.GetQueryList().AsNoTracking().Select(c => new GetCountryDto()
                 {
-                    throw new RestException(HttpStatusCode.BadRequest, "طلاعات وجود ندارد!");
-                }
-                var result = countryList.Adapt<IEnumerable<GetCountryDto>>();
-                if (result.Any())
-                    return result;
-                else
-                    throw new RestException(HttpStatusCode.BadRequest, "خطایی در نوع اطلاعات برگشتی رخ داد!");
+                    Id = c.Id,
+                    Name = c.Name,
+                    Iso3 = c.Iso3,
+                    CurrencyId = c.CurrencyId,
+                    IsActive = c.IsActive,
+                    Iso = c.Iso,
+                    NumCode = c.NumCode,
+                    PhoneCode = c.PhoneCode,
+                    CreationDate = c.CreationDate,
+                });
+                return countryList;
 
 
 

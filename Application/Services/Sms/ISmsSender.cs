@@ -1,7 +1,4 @@
-﻿using FastReport;
-using RestSharp;
-
-namespace Application.Services.Sms
+﻿namespace Application.Services.Sms
 {
     public interface ISmsSender
     {
