@@ -8,7 +8,7 @@
 @inject NotificationService _notice
 @inject BaseRequestParameter _baseRequestParameter
 @inject IStringLocalizer<Resource> _localizer
-@inject CultureSelector cultureSelector
+
 <Form Model="@command"
       LabelColSpan="8"
       WrapperColSpan="16">
@@ -62,11 +62,11 @@
 
 
 @code {
-        [Parameter]
-        public string culture { get; set; }
-        [Parameter]
-        public EventCallback<bool> StateChangeAfterAction { get; set; }
-        LanguageModels.CreateLanguage command = new LanguageModels.CreateLanguage();
+    [Parameter]
+    public string culture { get; set; }
+    [Parameter]
+    public EventCallback<bool> StateChangeAfterAction { get; set; }
+    LanguageModels.CreateLanguage command = new LanguageModels.CreateLanguage();
     public RestEception errorMessage = new RestEception();
     public bool error = false;
     #region Single Select

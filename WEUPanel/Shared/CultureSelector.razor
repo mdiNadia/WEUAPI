@@ -12,7 +12,7 @@
 <Dropdown Trigger="@(new Trigger[] { Trigger.Hover })">
     <Overlay>
         <Menu>
-            @foreach (var culture in cultures)
+            @foreach (var culture in this.cultures)
             {
                 <MenuItem>
                     <a @onclick="()=>{ChangeCulture(culture);}">

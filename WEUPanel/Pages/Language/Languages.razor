@@ -12,7 +12,9 @@
 @inject ModalService _modalService
 @using WEUPanel.Shared.Common;
 @inject State state
-@inject CultureSelector cultureSelector
+
+
+
 
 <div>
     @if (_showEditForm)
@@ -146,8 +148,14 @@ else
         _pageSize = languages.PageSize;
         _total = languages.TotalRecords;
         state.SetPage(_pageIndex.ToString());
+
+
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
         
     }
+
     private async Task nextPage()
     {
         _loading = true;

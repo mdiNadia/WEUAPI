@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Diagnostics;
 using System.Globalization;
 using WEUPanel.Services.Interfaces;
 using WEUPanel.Wrappers;
@@ -16,19 +17,11 @@ namespace WEUPanel.Shared
         public IJSRuntime JSRuntime { get; set; }
 
         public List<GetNameAndIdString> Languages { get; set; } =  new List<GetNameAndIdString>();
-        public List<CultureInfo> cultures { get; set; } = new List<CultureInfo>();
+         List<CultureInfo> cultures { get; set; }
         string CurrentCulture = CultureInfo.CurrentCulture.DisplayName;
-        public async Task StartCountdown(bool flag, List<GetNameAndIdString> lngs)
-        {
-            if (flag)
-            {
-                Languages = lngs;
-                await OnInitializedAsync();
-            }
-
-        }
         protected override async Task OnInitializedAsync()
         {
+           
             if (Languages.Count() == 0)
                 Languages = await _languageService.GetAll();
             cultures = new List<CultureInfo>();

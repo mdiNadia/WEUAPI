@@ -49,7 +49,7 @@ builder.Services.AddScoped<IConfirmedResultservice, ConfirmedResultservice>();
 builder.Services.AddScoped<IFileTypeService, FileTypeService>();
 builder.Services.AddScoped<IRejectedResultService, RejectedResultService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
-builder.Services.AddScoped<CultureSelector>();
+
 #endregion Services
 
 var host = builder.Build();
