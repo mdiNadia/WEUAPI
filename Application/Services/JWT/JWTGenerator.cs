@@ -125,7 +125,7 @@ namespace Application.Services.JWT
                 return new RefreshToken
                 {
                     Token = Convert.ToBase64String(randomNumber),
-                    Expires = DateTime.UtcNow.AddDays(7),
+                    Expires = DateTime.UtcNow.AddMinutes(10),
                     Created = DateTime.UtcNow
                 };
 
