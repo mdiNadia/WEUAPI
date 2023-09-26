@@ -22,6 +22,10 @@ namespace Application.Features.User.Commands
                 var profile = await _unitOfWork.Profiles.GetQueryList().
                     FirstOrDefaultAsync(c => c.Username == command.username);
                 if (profile == null) throw new RestException(HttpStatusCode.BadRequest, "اطلاعات وجود ندارد!");
+                var commnet = await _unitOfWork.Comments.GetQueryList().FirstOrDefaultAsync(c => c.AuthorId == profile.Id);
+                if (commnet != null)
+                    throw new Exception("این کاربر دارای نظر میباشد!");
+                
                 _unitOfWork.Profiles.Delete(profile);
                 try
                 {
